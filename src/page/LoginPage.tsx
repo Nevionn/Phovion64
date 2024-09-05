@@ -14,7 +14,7 @@ import Cbutton from '../components/Cbutton';
 import PinCode from '../components/PinCode';
 
 const LoginPage = () => {
-  const [pin, setPin] = useState<string | undefined>('1234');
+  const [installationPinStage, setInstallationPinStage] = useState(false);
 
   return (
     <View style={styles.root}>
@@ -23,20 +23,23 @@ const LoginPage = () => {
         translucent
         backgroundColor="transparent"
       />
-      <View style={styles.greetingsItem}>
-        {/* <Text style={styles.text}>Добро пожаловать в защищенную галлерею</Text>
-        <Cbutton
-          styleButton={styles.startButton}
-          colorButton={{backgroundColor: COLOR.BUTTON_COLOR}}
-          isShadow={true}
-          isVisible={true}
-          name={'Начать'}
-          onPress={() => {
-            console.log('go');
-          }}
-        /> */}
+      {!installationPinStage ? (
+        <View style={styles.greetingsItem}>
+          <Text style={styles.text}>Добро пожаловать в защищенную галерею</Text>
+          <Cbutton
+            styleButton={styles.startButton}
+            colorButton={{backgroundColor: COLOR.BUTTON_COLOR}}
+            isShadow={true}
+            isVisible={true}
+            name={'Начать'}
+            onPress={() => {
+              setInstallationPinStage(true);
+            }}
+          />
+        </View>
+      ) : (
         <PinCode />
-      </View>
+      )}
     </View>
   );
 };

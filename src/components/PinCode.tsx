@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
     position: 'absolute',
-    top: 40,
+    top: 140,
   },
   buttonText: {
     fontSize: 24,
