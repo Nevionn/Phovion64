@@ -1,5 +1,6 @@
 export const COLOR = {
   MAIN_COLOR: '#1c1549',
   BUTTON_COLOR: '#6934d1',
+  BUTTON_PIN_COLOR: '#4A90E2',
   SECONDARY_COLOR: '#2a206c',
 };
