@@ -12,7 +12,6 @@ const MainScreen = () => (
     tabBar={() => null}
     screenOptions={{
       headerShown: false,
-      // tabBarVisible: false,
     }}>
     <Tab.Screen name="LoginPage" component={LoginPageScreen} />
     <Tab.Screen name="MainPage" component={MainPageScreen} />
@@ -25,7 +24,9 @@ const AppStack = () => {
       screenOptions={{
         headerShown: false,
       }}>
-      <Stack.Screen name="MainScreen" component={MainScreen} />
+      {/* <Stack.Screen name="MainScreen" component={MainScreen} /> */}
+      <Stack.Screen name="LoginPage" component={LoginPageScreen} />
+      <Stack.Screen name="MainPage" component={MainPageScreen} />
     </Stack.Navigator>
   );
 };

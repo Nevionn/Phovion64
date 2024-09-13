@@ -1,23 +1,12 @@
 import React, {useEffect, useState} from 'react';
-import {
-  View,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  Text,
-  StyleProp,
-  ViewStyle,
-  TextStyle,
-  Alert,
-} from 'react-native';
+import {View, StyleSheet, TouchableOpacity, Text, Alert} from 'react-native';
 import {COLOR} from '../../assets/colorTheme';
 
 interface PinInputProps {
-  length?: number;
   onComplete?: (pin: string) => void;
 }
 
-const PinCode: React.FC<PinInputProps> = ({}) => {
+const PinCode: React.FC<PinInputProps> = ({onComplete}) => {
   const [initialPin, setInitialPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [step, setStep] = useState(1); // Шаг 1 - ввод PIN, Шаг 2 - подтверждение PIN
@@ -53,6 +42,9 @@ const PinCode: React.FC<PinInputProps> = ({}) => {
       if (confirmPin === initialPin) {
         console.log(`PIN-код успешно подтверждён! запись в базу ${initialPin}`);
         Alert.alert('Переход в галлерею');
+        if (onComplete) {
+          onComplete(initialPin);
+        }
       } else {
         Alert.alert('PIN-коды не совпадают. Попробуйте снова');
         setInitialPin('');
@@ -61,14 +53,6 @@ const PinCode: React.FC<PinInputProps> = ({}) => {
       }
     }
   };
-
-  //   useEffect(() => {
-  //     // console.log(pin);
-  //     if (pin.length === 4) {
-  //       setAcceptPin(pin);
-  //       console.log(acceptPin);
-  //     }
-  //   }, [pin]);
 
   return (
     <View style={styles.root}>
