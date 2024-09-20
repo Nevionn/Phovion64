@@ -14,7 +14,7 @@ import NaviBar from '../components/Navibar';
 import Cbutton from '../components/Cbutton';
 import {usePinCodeRequest} from '../hooks/usePinCodeRequest';
 const MainPage = () => {
-  const {showTableContent} = usePinCodeRequest();
+  const {showTableContent, dropTable} = usePinCodeRequest();
   return (
     <View style={[styles.root, {backgroundColor: COLOR.MAIN_COLOR}]}>
       <StatusBar
@@ -32,6 +32,17 @@ const MainPage = () => {
           name={'Проверить пинкод'}
           onPress={() => {
             showTableContent();
+          }}
+        />
+        <Cbutton
+          styleButton={{height: 40}}
+          styleText={{}}
+          colorButton={{backgroundColor: COLOR.BUTTON_COLOR}}
+          isShadow={true}
+          isVisible={true}
+          name={'drop table'}
+          onPress={() => {
+            dropTable('PinCodeTable');
           }}
         />
       </ScrollView>

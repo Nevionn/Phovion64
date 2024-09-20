@@ -2,8 +2,6 @@ import React, {useState, useEffect} from 'react';
 import {
   StatusBar,
   StyleSheet,
-  View,
-  Text,
   Dimensions,
   ImageBackground,
   Alert,
@@ -12,11 +10,11 @@ import {useNavigation} from '@react-navigation/native';
 import {COLOR} from '../../assets/colorTheme';
 const {width} = Dimensions.get('window');
 const {height} = Dimensions.get('window');
-import Cbutton from '../components/Cbutton';
 import PinCode from '../components/PinCode';
 import {usePinCodeRequest} from '../hooks/usePinCodeRequest';
 
 const LoginPage = () => {
+  const navigation: any = useNavigation();
   const {getPinCodefromTable} = usePinCodeRequest();
   const [rightPinCodeFromDb, setRightPinCodeFromDb] = useState('');
   const [inputPinCode, setInputPinCode] = useState('');
@@ -33,8 +31,9 @@ const LoginPage = () => {
     if (inputPinCode) {
       if (rightPinCodeFromDb === inputPinCode) {
         console.log('пин код совпадает');
+        navigation.replace('MainPage');
       } else {
-        console.log('неверный пин код');
+        Alert.alert('Неверный пин код,\nпопробуйте снова');
       }
     }
   }, [inputPinCode]);
@@ -48,7 +47,7 @@ const LoginPage = () => {
         translucent
         backgroundColor="transparent"
       />
-      <PinCode onComplete={handlePinComplete} />
+      <PinCode onComplete={handlePinComplete} inputMode={1} />
     </ImageBackground>
   );
 };

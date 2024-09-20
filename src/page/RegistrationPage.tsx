@@ -146,7 +146,7 @@ const RegistrationPage = () => {
           </View>
         </View>
       ) : (
-        <PinCode onComplete={handlePinComplete} />
+        <PinCode onComplete={handlePinComplete} inputMode={2} />
       )}
     </ImageBackground>
   );

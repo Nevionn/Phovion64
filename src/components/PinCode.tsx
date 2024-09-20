@@ -4,12 +4,17 @@ import {COLOR} from '../../assets/colorTheme';
 
 interface PinInputProps {
   onComplete?: (pin: string) => void;
+  inputMode?: number;
 }
 
-const PinCode: React.FC<PinInputProps> = ({onComplete}) => {
+const PinCode: React.FC<PinInputProps> = ({onComplete, inputMode}) => {
   const [initialPin, setInitialPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [step, setStep] = useState(1); // Шаг 1 - ввод PIN, Шаг 2 - подтверждение PIN
+
+  const clearPinCode = () => {
+    setInitialPin('');
+  };
 
   const handleDelete = () => {
     if (step === 1) {
@@ -34,7 +39,13 @@ const PinCode: React.FC<PinInputProps> = ({onComplete}) => {
   const handleNextStep = () => {
     if (step === 1) {
       if (initialPin.length === 4) {
-        setStep(2);
+        if (inputMode === 2) {
+          setStep(2);
+        } else {
+          if (onComplete) {
+            onComplete(initialPin);
+          }
+        }
       } else {
         Alert.alert('Введите полный PIN-код');
       }
