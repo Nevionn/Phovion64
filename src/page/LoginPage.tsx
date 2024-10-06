@@ -18,9 +18,14 @@ const LoginPage = () => {
   const {getPinCodefromTable} = usePinCodeRequest();
   const [rightPinCodeFromDb, setRightPinCodeFromDb] = useState('');
   const [inputPinCode, setInputPinCode] = useState('');
+  const [shouldResetPin, setShouldResetPin] = useState(false);
 
   const handlePinComplete = (pin: string) => {
     setInputPinCode(pin);
+  };
+
+  const handleResetPin = () => {
+    setShouldResetPin(true);
   };
 
   useEffect(() => {
@@ -34,6 +39,7 @@ const LoginPage = () => {
         navigation.replace('MainPage');
       } else {
         Alert.alert('Неверный пин код,\nпопробуйте снова');
+        handleResetPin();
       }
     }
   }, [inputPinCode]);
@@ -47,7 +53,11 @@ const LoginPage = () => {
         translucent
         backgroundColor="transparent"
       />
-      <PinCode onComplete={handlePinComplete} inputMode={1} />
+      <PinCode
+        onComplete={handlePinComplete}
+        inputMode={1}
+        onReset={shouldResetPin ? () => setShouldResetPin(false) : undefined}
+      />
     </ImageBackground>
   );
 };

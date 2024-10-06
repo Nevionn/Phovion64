@@ -5,9 +5,10 @@ import {COLOR} from '../../assets/colorTheme';
 interface PinInputProps {
   onComplete?: (pin: string) => void;
   inputMode?: number;
+  onReset?: () => void;
 }
 
-const PinCode: React.FC<PinInputProps> = ({onComplete, inputMode}) => {
+const PinCode: React.FC<PinInputProps> = ({onComplete, inputMode, onReset}) => {
   const [initialPin, setInitialPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [step, setStep] = useState(1); // Шаг 1 - ввод PIN, Шаг 2 - подтверждение PIN
@@ -15,6 +16,12 @@ const PinCode: React.FC<PinInputProps> = ({onComplete, inputMode}) => {
   const clearPinCode = () => {
     setInitialPin('');
   };
+
+  useEffect(() => {
+    if (onReset) {
+      clearPinCode();
+    }
+  }, [onReset]);
 
   const handleDelete = () => {
     if (step === 1) {
