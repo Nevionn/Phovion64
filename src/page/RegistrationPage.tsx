@@ -19,6 +19,7 @@ import {usePinCodeRequest} from '../hooks/usePinCodeRequest';
 const RegistrationPage = () => {
   const {
     savePinCode,
+    skipPin,
     checkActivePinCode,
     dropTable,
     showTableContent,
@@ -28,11 +29,14 @@ const RegistrationPage = () => {
   const navigation: any = useNavigation();
   const [installationPinStage, setInstallationPinStage] = useState(false);
   const [pinCode, setPinCode] = useState('');
-  const [isPinActive, setIsPinActive] = useState(false);
-  // const [skipInstallPinCode, setSkipInstallPinCode] = useState(false);
 
   const handlePinComplete = (pin: string) => {
     setPinCode(pin);
+  };
+
+  const skipInstallPinCode = () => {
+    skipPin();
+    onLoginSuccess();
   };
 
   const onLoginSuccess = () => {
@@ -44,13 +48,15 @@ const RegistrationPage = () => {
   };
 
   useEffect(() => {
-    checkActivePinCode((isActive: boolean) => {
-      setIsPinActive(isActive);
+    checkActivePinCode((isActive: boolean, isSkip: boolean) => {
       if (isActive) {
         redirectToLoginPage();
       }
+      if (isSkip) {
+        onLoginSuccess();
+      }
     });
-  }, []); // проверка на установленный пин код и редирект на подтверждение
+  }, []);
 
   useEffect(() => {
     if (pinCode) {
@@ -85,7 +91,7 @@ const RegistrationPage = () => {
               isVisible={true}
               name={'Пропустить'}
               onPress={() => {
-                onLoginSuccess();
+                skipInstallPinCode();
               }}
             />
             <Cbutton

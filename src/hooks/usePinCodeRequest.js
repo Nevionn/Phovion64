@@ -4,7 +4,7 @@ const db = SQLite.openDatabase({name: 'database.db', location: 'default'});
 
 db.transaction(tx => {
   tx.executeSql(
-    'CREATE TABLE IF NOT EXISTS PinCodeTable (id INTEGER PRIMARY KEY AUTOINCREMENT, pinCode TEXT, isActive INTEGER DEFAULT 0)',
+    'CREATE TABLE IF NOT EXISTS PinCodeTable (id INTEGER PRIMARY KEY AUTOINCREMENT, pinCode TEXT, isActive INTEGER DEFAULT 0, isSkip INTEGER DEFAULT 0)',
     [],
     (tx, results) => {
       console.log('Table created successfully');
@@ -16,13 +16,30 @@ const useAddPinCodeToTable = () => {
   return pinCode => {
     db.transaction(tx => {
       tx.executeSql(
-        'INSERT INTO PinCodeTable (pinCode, isActive) VALUES (?, ?)',
+        'INSERT INTO PinCodeTable (pinCode, isActive, isSkip) VALUES (?, ?, ?)',
         [pinCode, 1], // Передаем пин-код в качестве параметра
         (_, results) => {
           console.log('пин код успешно добавлен в таблицу.');
         },
         error => {
           console.error('Ошибка при добавлении пин-кода в таблицу:', error);
+        },
+      );
+    });
+  };
+};
+
+const useAddSkipPinCodeVallue = () => {
+  return () => {
+    db.transaction(tx => {
+      tx.executeSql(
+        'INSERT INTO PinCodeTable (isSkip) VALUES (?)',
+        [1], // пишем в таблицу, что была пропущена регистрация пин кода
+        (_, results) => {
+          console.log('установка пин кода пропущена');
+        },
+        error => {
+          console.error('Ошибка записи "isSkip" в таблицу:', error);
         },
       );
     });
@@ -56,21 +73,32 @@ const useGetPinCode = () => {
 const useCheckActivePinCode = () => {
   return callback => {
     db.transaction(tx => {
+      // Первый запрос: проверка активированного пин-кода
       tx.executeSql(
-        'SELECT * FROM PinCodeTable WHERE isActive = 1', // Проверяем, есть ли активированный пин-код
+        'SELECT * FROM PinCodeTable WHERE isActive = 1',
         [],
         (tx, results) => {
-          if (results.rows.length > 0) {
-            console.log('Активированный пин-код найден');
-            callback(true); // Возвращаем true, если пин-код активирован
-          } else {
-            console.log('Активированный пин-код не найден');
-            callback(false); // Возвращаем false, если активированного пин-кода нет
-          }
+          const isActive = results.rows.length > 0;
+
+          // Второй запрос: проверка пропущенного пин-кода
+          tx.executeSql(
+            'SELECT * FROM PinCodeTable WHERE isSkip = 1',
+            [],
+            (tx, results) => {
+              const isSkip = results.rows.length > 0;
+
+              // Возвращаем результат
+              callback(isActive, isSkip);
+            },
+            error => {
+              console.error('Ошибка при проверке isSkip:', error);
+              callback(isActive, false); // Возвращаем результат только для isActive
+            },
+          );
         },
         error => {
-          console.error('Ошибка при проверке пин-кода:', error);
-          callback(false);
+          console.error('Ошибка при проверке isActive:', error);
+          callback(false, false); // Ошибка, оба значения false
         },
       );
     });
@@ -162,6 +190,7 @@ export const useShowShemeTable = () => {
 
 export function usePinCodeRequest() {
   const savePinCode = useAddPinCodeToTable();
+  const skipPin = useAddSkipPinCodeVallue();
   const getPinCodefromTable = useGetPinCode();
   const checkActivePinCode = useCheckActivePinCode();
   const dropTable = useClearTable();
@@ -171,6 +200,7 @@ export function usePinCodeRequest() {
 
   return {
     savePinCode,
+    skipPin,
     getPinCodefromTable,
     checkActivePinCode,
     dropTable,
