@@ -3792,7 +3792,7 @@ lodash.merge@^4.6.2:
 lodash.throttle@^4.1.1:
   version "4.1.1"
 
-lodash@^4.17.21:
+lodash@^4.17.15, lodash@^4.17.21:
   version "4.17.21"
 
 log-symbols@^4.1.0:
@@ -4445,6 +4445,13 @@ react-is@^16.13.1:
 
 react-is@^17.0.1:
   version "17.0.2"
+
+react-native-easy-grid@^0.2.2:
+  version "0.2.2"
+  resolved "https://registry.npmjs.org/react-native-easy-grid/-/react-native-easy-grid-0.2.2.tgz"
+  integrity sha512-MlYrNIldnEMKn6TVatQN1P64GoVlwGIuz+8ncdfJ0Wq/xtzUkQwlil8Uksyp7MhKfENE09MQnGNcba6Mx3oSAA==
+  dependencies:
+    lodash "^4.17.15"
 
 react-native-linear-gradient@^2.8.3:
   version "2.8.3"

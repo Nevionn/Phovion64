@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: height * 1, // Окно для изображения
     width: width * 1,
-    backgroundColor: 'black',
+    backgroundColor: 'transparent',
   },
   image: {
     width: '100%',
