@@ -24,12 +24,17 @@ const NewAlbumModal: React.FC<NewAlbumModalProps> = ({
     }
   };
 
+  const handleCloseModal = () => {
+    onClose();
+    setTitle('');
+  };
+
   return (
     <Modal
       visible={visible}
       animationType="fade"
       transparent={true}
-      onRequestClose={onClose}>
+      onRequestClose={handleCloseModal}>
       <View style={styles.modalBackground}>
         <View style={styles.modalContainer}>
           <Text style={styles.title}>Создать новый альбом</Text>
@@ -40,10 +45,10 @@ const NewAlbumModal: React.FC<NewAlbumModalProps> = ({
             onChangeText={setTitle}
           />
           <View style={styles.buttonContainer}>
-            <Button mode="contained" onPress={handleSave}>
+            <Button mode="contained" onPress={() => handleSave()}>
               Сохранить
             </Button>
-            <Button mode="contained" onPress={onClose}>
+            <Button mode="contained" onPress={() => handleCloseModal()}>
               Отмена
             </Button>
           </View>

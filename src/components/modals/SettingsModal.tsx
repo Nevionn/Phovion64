@@ -39,6 +39,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     onClose();
   };
 
+  const handleCloseModal = () => {
+    onClose();
+    getSettings(setSettings);
+  };
+
   useEffect(() => {
     getSettings(setSettings);
   }, []);
@@ -48,7 +53,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       visible={visible}
       animationType="fade"
       transparent={true}
-      onRequestClose={onClose}>
+      onRequestClose={handleCloseModal}>
       <View style={styles.modalBackground}>
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Настройки</Text>
@@ -78,10 +83,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           </View>
 
           <View style={styles.buttonsItem}>
-            <Button mode="contained" onPress={handleSave}>
+            <Button mode="contained" onPress={() => handleSave()}>
               Сохранить
             </Button>
-            <Button mode="contained" onPress={onClose}>
+            <Button mode="contained" onPress={() => handleCloseModal()}>
               Отмена
             </Button>
           </View>
