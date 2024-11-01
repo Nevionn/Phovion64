@@ -137,14 +137,14 @@ const MainPage: React.FC = () => {
         <Button
           mode="contained"
           onPress={() => {
-            showSettings(); // showShemeAlbumsTable('AlbumsTable')
+            showTableContent(); // showShemeAlbumsTable('AlbumsTable')
           }}>
           настройки
         </Button>
         <Button
           mode="contained"
           onPress={() => {
-            dropTable('AlbumsTable');
+            dropTable('PinCodeTable');
           }}>
           Дропнуть таблицу
         </Button>

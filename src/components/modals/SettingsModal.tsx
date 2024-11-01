@@ -1,9 +1,12 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, Switch, StyleSheet, Modal} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
-import {Button} from 'react-native-paper';
+import {Button, Divider, ThemeProvider, useTheme} from 'react-native-paper';
 import {COLOR} from '../../../assets/colorTheme';
 import {useSettingsRequest} from '../../hooks/useSettingsRequest';
+import {usePinCodeRequest} from '../../hooks/usePinCodeRequest';
+import {useNavigation} from '@react-navigation/native';
+import SvgPassword from '../icons/SvgPassword';
 
 interface SettingsModalProps {
   visible: boolean;
@@ -21,7 +24,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose,
   onSave,
 }) => {
+  const navigation: any = useNavigation();
+  const {checkActivePinCode} = usePinCodeRequest();
   const {getSettings} = useSettingsRequest();
+
+  const [safetyVisible, setSafetyVisible] = useState(true);
   const [settings, setSettings] = useState<Settings>({
     darkMode: false,
     sortOrder: 'newest',
@@ -44,7 +51,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     getSettings(setSettings);
   };
 
+  const setPinCode = () => {
+    try {
+      navigation.navigate('RegistrationPage', {installationPinStage: true});
+    } catch (error) {
+      console.error('Navigation error:', error);
+    }
+  };
+
   useEffect(() => {
+    checkActivePinCode((isActive: boolean, isSkip: boolean) => {
+      if (isActive) {
+        setSafetyVisible(false);
+      }
+      if (isSkip) {
+        setSafetyVisible(true);
+      }
+    });
     getSettings(setSettings);
   }, []);
 
@@ -65,9 +88,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               onValueChange={() => toggleSwitch('darkMode')}
             />
           </View>
-
+          <Divider />
+          <View style={styles.topSpacer} />
           <View style={styles.sortItem}>
-            <Text>Сортировка</Text>
+            <Text>Сортировка:</Text>
             <Picker
               selectedValue={settings.sortOrder}
               style={styles.pickerItem}
@@ -81,6 +105,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               <Picker.Item label="Старые альбомы" value="oldest" />
             </Picker>
           </View>
+          <Divider />
+          {safetyVisible && (
+            <View style={styles.securItem}>
+              <Text>Безопасность:</Text>
+              <View style={styles.topSpacer} />
+              <Button
+                textColor={COLOR.dark.BUTTON_TEXT}
+                icon={() => <SvgPassword />}
+                mode="text"
+                onPress={() => setPinCode()}>
+                Установить ПИН-код
+              </Button>
+            </View>
+          )}
 
           <View style={styles.buttonsItem}>
             <Button mode="contained" onPress={() => handleSave()}>
@@ -126,6 +164,12 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
   },
+  securItem: {
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    marginTop: 10,
+  },
   pickerItem: {
     height: 50,
     width: 190,
@@ -134,6 +178,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginTop: 20,
+  },
+  topSpacer: {
+    height: 10,
   },
 });
 
