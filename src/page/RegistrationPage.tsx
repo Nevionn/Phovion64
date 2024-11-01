@@ -8,7 +8,7 @@ import {
   ImageBackground,
   Alert,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import {COLOR} from '../../assets/colorTheme';
 const {width} = Dimensions.get('window');
 const {height} = Dimensions.get('window');
@@ -26,7 +26,9 @@ const RegistrationPage = () => {
     showTables,
     showScheme,
   } = usePinCodeRequest();
+  const route: any = useRoute();
   const navigation: any = useNavigation();
+
   const [installationPinStage, setInstallationPinStage] = useState(false);
   const [pinCode, setPinCode] = useState('');
 
@@ -48,7 +50,15 @@ const RegistrationPage = () => {
   };
 
   useEffect(() => {
+    console.log('Route params:', route.params);
+    const initialPinStage = route.params?.installationPinStage;
+    setInstallationPinStage(initialPinStage);
+    console.log('Initial installationPinStage:', initialPinStage);
+
     checkActivePinCode((isActive: boolean, isSkip: boolean) => {
+      if (initialPinStage) {
+        return;
+      }
       if (isActive) {
         redirectToLoginPage();
       }
@@ -56,7 +66,7 @@ const RegistrationPage = () => {
         onLoginSuccess();
       }
     });
-  }, []);
+  }, [route.params]);
 
   useEffect(() => {
     if (pinCode) {

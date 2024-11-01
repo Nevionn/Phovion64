@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, Switch, StyleSheet, Modal} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
-import {Button, Divider, ThemeProvider, useTheme} from 'react-native-paper';
+import {Button, Divider} from 'react-native-paper';
 import {COLOR} from '../../../assets/colorTheme';
 import {useSettingsRequest} from '../../hooks/useSettingsRequest';
 import {usePinCodeRequest} from '../../hooks/usePinCodeRequest';

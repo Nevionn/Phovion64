@@ -15,14 +15,45 @@ db.transaction(tx => {
 const useAddPinCodeToTable = () => {
   return pinCode => {
     db.transaction(tx => {
+      // Проверяем, существует ли уже запись
       tx.executeSql(
-        'INSERT INTO PinCodeTable (pinCode, isActive, isSkip) VALUES (?, ?, ?)',
-        [pinCode, 1], // Передаем пин-код в качестве параметра
+        'SELECT * FROM PinCodeTable WHERE isSkip = 1',
+        [],
         (_, results) => {
-          console.log('пин код успешно добавлен в таблицу.');
+          if (results.rows.length > 0) {
+            // Если запись существует, обновляем ее
+            tx.executeSql(
+              'UPDATE PinCodeTable SET pinCode = ?, isActive = ?, isSkip = ? WHERE isSkip = 1',
+              [pinCode, 1, 0],
+              () => {
+                console.log('пин код успешно обновлен в таблице.');
+              },
+              error => {
+                console.error(
+                  'Ошибка при обновлении пин-кода в таблице:',
+                  error,
+                );
+              },
+            );
+          } else {
+            // Если записи нет, добавляем новую
+            tx.executeSql(
+              'INSERT INTO PinCodeTable (pinCode, isActive, isSkip) VALUES (?, ?, ?)',
+              [pinCode, 1, 0],
+              () => {
+                console.log('пин код успешно добавлен в таблицу.');
+              },
+              error => {
+                console.error(
+                  'Ошибка при добавлении пин-кода в таблицу:',
+                  error,
+                );
+              },
+            );
+          }
         },
         error => {
-          console.error('Ошибка при добавлении пин-кода в таблицу:', error);
+          console.error('Ошибка при проверке пин-кода в таблице:', error);
         },
       );
     });
