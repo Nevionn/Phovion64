@@ -53,6 +53,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
   const setPinCode = () => {
     try {
+      handleCloseModal();
       navigation.navigate('RegistrationPage', {installationPinStage: true});
     } catch (error) {
       console.error('Navigation error:', error);
