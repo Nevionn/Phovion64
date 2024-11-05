@@ -7,7 +7,7 @@ export const COLOR = {
     BUTTON_PIN_COLOR: '#4A90E2',
     SECONDARY_COLOR: '#2a206c',
     TEXT_BRIGHT: 'white',
-    TEXT_DIM: '#ACACAC',
+    TEXT_DIM: '#BABABA',
   },
   light: {
     MAIN_COLOR: '#fff0e5',
@@ -18,4 +18,5 @@ export const COLOR = {
     TEXT_BRIGHT: 'black',
     TEXT_DIM: 'grey',
   },
+  alertColor: '#EC97A1',
 };

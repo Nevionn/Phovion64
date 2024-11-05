@@ -7,6 +7,8 @@ import {useSettingsRequest} from '../../hooks/useSettingsRequest';
 import {usePinCodeRequest} from '../../hooks/usePinCodeRequest';
 import {useNavigation} from '@react-navigation/native';
 import SvgPassword from '../icons/SvgPassword';
+import SvgDeleteAlbums from '../icons/SvgDeleteAlbums';
+import AcceptMoveModal from './AcceptMoveModal';
 
 interface SettingsModalProps {
   visible: boolean;
@@ -25,6 +27,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   onSave,
 }) => {
   const navigation: any = useNavigation();
+
   const {checkActivePinCode} = usePinCodeRequest();
   const {getSettings} = useSettingsRequest();
 
@@ -33,6 +36,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     darkMode: false,
     sortOrder: 'newest',
   });
+
+  const [isVisibleAcceptModal, setIsVisibleAcceptModal] = useState(false);
 
   const toggleSwitch = (key: keyof Settings) => {
     setSettings(prevSettings => ({
@@ -46,14 +51,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     onClose();
   };
 
-  const handleCloseModal = () => {
+  const handleCloseSettingsModal = () => {
     onClose();
     getSettings(setSettings);
   };
 
+  const handleOpenAcceptModal = () => {
+    setIsVisibleAcceptModal(true);
+  };
+
+  const handleCloseAcceptModal = () => {
+    setIsVisibleAcceptModal(false);
+  };
+
   const setPinCode = () => {
     try {
-      handleCloseModal();
+      handleCloseSettingsModal();
       navigation.navigate('RegistrationPage', {installationPinStage: true});
     } catch (error) {
       console.error('Navigation error:', error);
@@ -77,7 +90,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       visible={visible}
       animationType="fade"
       transparent={true}
-      onRequestClose={handleCloseModal}>
+      onRequestClose={handleCloseSettingsModal}>
       <View style={styles.modalBackground}>
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Настройки</Text>
@@ -129,16 +142,31 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               </Button>
             </View>
           )}
-
+          <Divider />
+          <View style={styles.deleteAlbumsItem}>
+            <Text style={styles.smallText}>Очистка:</Text>
+            <View style={styles.topSpacer} />
+            <Button
+              textColor={COLOR.alertColor}
+              icon={() => <SvgDeleteAlbums />}
+              mode="text"
+              onPress={() => handleOpenAcceptModal()}>
+              Удалить все альбомы
+            </Button>
+          </View>
           <View style={styles.buttonsItem}>
             <Button mode="contained" onPress={() => handleSave()}>
               Сохранить
             </Button>
-            <Button mode="contained" onPress={() => handleCloseModal()}>
+            <Button mode="contained" onPress={() => handleCloseSettingsModal()}>
               Отмена
             </Button>
           </View>
         </View>
+        <AcceptMoveModal
+          visible={isVisibleAcceptModal}
+          onClose={handleCloseAcceptModal}
+        />
       </View>
     </Modal>
   );
@@ -181,6 +209,12 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginTop: 10,
   },
+  deleteAlbumsItem: {
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    marginTop: 10,
+  },
   pickerItem: {
     height: 50,
     width: 190,
@@ -197,7 +231,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   smallText: {
-    color: '#BABABA',
+    color: COLOR.dark.TEXT_DIM,
   },
 });
 

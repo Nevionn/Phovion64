@@ -24,6 +24,7 @@ import {Image as SvgImage} from 'react-native-svg';
 import {Button} from 'react-native-paper';
 const {width} = Dimensions.get('window');
 const {height} = Dimensions.get('window');
+import eventEmitter from '../../assets/eventEmitter';
 
 interface Album {
   id: string;
@@ -38,7 +39,7 @@ const MainPage: React.FC = () => {
     useAlbumsRequest();
   const {acceptSettings, getSettings, showSettings} = useSettingsRequest();
 
-  const [isModalVisible, setModalVisible] = useState(false);
+  const [isModalAddAlbumVisible, setModalAddAlbumVisible] = useState(false);
   const [isSettingsModalVisible, setIsSettingsModalVisible] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(true);
 
@@ -54,13 +55,22 @@ const MainPage: React.FC = () => {
   }, [appSettings.darkMode]);
 
   useEffect(() => {
-    getAllAlbums((fetchedAlbums: Album[]) => {
-      const sortedAlbums =
-        appSettings.sortOrder === 'oldest'
-          ? [...fetchedAlbums].reverse()
-          : fetchedAlbums;
-      setAlbums(sortedAlbums);
-    });
+    const updateAlbums = () => {
+      getAllAlbums((fetchedAlbums: Album[]) => {
+        const sortedAlbums =
+          appSettings.sortOrder === 'oldest'
+            ? [...fetchedAlbums].reverse()
+            : fetchedAlbums;
+        setAlbums(sortedAlbums);
+      });
+    };
+
+    updateAlbums();
+
+    eventEmitter.on('albumsUpdated', updateAlbums);
+    return () => {
+      eventEmitter.off('albumsUpdated', updateAlbums);
+    };
   }, [appSettings.sortOrder]);
 
   const openSettings = () => setIsSettingsModalVisible(true);
@@ -71,7 +81,7 @@ const MainPage: React.FC = () => {
     acceptSettings(newSettings); // Передаём настройки в базу данных
   };
 
-  const openCreateAlbumModal = () => setModalVisible(true);
+  const openCreateAlbumModal = () => setModalAddAlbumVisible(true);
 
   const handleAddAlbum = (newAlbum: {title: string}) => {
     const currentDate = new Date();
@@ -121,8 +131,8 @@ const MainPage: React.FC = () => {
         )}
       />
       <NewAlbumModal
-        visible={isModalVisible}
-        onClose={() => setModalVisible(false)}
+        visible={isModalAddAlbumVisible}
+        onClose={() => setModalAddAlbumVisible(false)}
         onSubmit={handleAddAlbum}
       />
       <SettingsModal
@@ -137,7 +147,7 @@ const MainPage: React.FC = () => {
         <Button
           mode="contained"
           onPress={() => {
-            showTableContent(); // showShemeAlbumsTable('AlbumsTable')
+            showAlbums(); // showShemeAlbumsTable('AlbumsTable')
           }}>
           настройки
         </Button>
