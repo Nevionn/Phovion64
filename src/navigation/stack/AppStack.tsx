@@ -4,6 +4,7 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import MainPageScreen from '../screens/MainPageScreen';
 import RegistrationPageScreen from '../screens/RegistrationPageScreen';
 import LoginPageScreen from '../screens/LoginPageScreen';
+import PhotoPageScreen from '../screens/PhotoPageScreen';
 import TestScreen from '../screens/TestScreen';
 
 const Stack = createNativeStackNavigator();
@@ -34,6 +35,7 @@ const AppStack = () => {
       />
       <Stack.Screen name="LoginPage" component={LoginPageScreen} />
       <Stack.Screen name="MainPage" component={MainPageScreen} />
+      <Stack.Screen name="PhotoPage" component={PhotoPageScreen} />
     </Stack.Navigator>
   );
 };

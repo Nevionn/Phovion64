@@ -10,16 +10,19 @@ import {
   Dimensions,
   Image,
   FlatList,
+  TouchableOpacity,
 } from 'react-native';
 import {COLOR} from '../../assets/colorTheme';
 import NaviBar from '../components/Navibar';
 import Cbutton from '../components/Cbutton';
+import {useNavigation} from '@react-navigation/native';
 import {usePinCodeRequest} from '../hooks/usePinCodeRequest';
 import {useAlbumsRequest} from '../hooks/useAlbumsRequest';
 import {useSettingsRequest} from '../hooks/useSettingsRequest';
 import ImageViewer from '../components/ImageViewer';
 import NewAlbumModal from '../components/modals/NewAlbumModal';
 import SettingsModal from '../components/modals/SettingsModal';
+import PhotoPage from './PhotoPage';
 import {Image as SvgImage} from 'react-native-svg';
 import {Button} from 'react-native-paper';
 const {width} = Dimensions.get('window');
@@ -34,6 +37,8 @@ interface Album {
 }
 
 const MainPage: React.FC = () => {
+  const navigation: any = useNavigation();
+
   const {showTableContent, dropTable} = usePinCodeRequest();
   const {addAlbum, getAllAlbums, showAlbums, showShemeAlbumsTable} =
     useAlbumsRequest();
@@ -88,6 +93,10 @@ const MainPage: React.FC = () => {
     addAlbum(albumToInsert), getAllAlbums(setAlbums, appSettings.sortOrder);
   };
 
+  const openAlbum = () => {
+    navigation.navigate('PhotoPage');
+  };
+
   const styles = getStyles(isDarkTheme);
 
   return (
@@ -103,7 +112,9 @@ const MainPage: React.FC = () => {
         numColumns={2}
         keyExtractor={item => item.id}
         renderItem={({item}) => (
-          <View style={styles.placeHolder}>
+          <TouchableOpacity
+            style={styles.placeHolder}
+            onPress={() => openAlbum()}>
             <View style={styles.imagePlace}>
               <Image
                 source={require('../../assets/images/not_img_default.png')}
@@ -121,7 +132,7 @@ const MainPage: React.FC = () => {
                   styles.textCountPhoto
                 }>{`фотографий ${item.countPhoto}`}</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         )}
       />
       <NewAlbumModal
@@ -137,7 +148,7 @@ const MainPage: React.FC = () => {
       {/* <View>
         <ImageViewer />
       </View> */}
-      <View style={styles.testBlock}>
+      {/* <View style={styles.testBlock}>
         <Button
           mode="contained"
           onPress={() => {
@@ -152,7 +163,7 @@ const MainPage: React.FC = () => {
           }}>
           Дропнуть таблицу
         </Button>
-      </View>
+      </View> */}
       <NaviBar
         openModalAlbum={openCreateAlbumModal}
         openModalSettings={openSettings}
@@ -174,13 +185,8 @@ const getStyles = (isDarkTheme: boolean) => {
     topSpacer: {
       height: '15%',
     },
-    container: {
-      paddingHorizontal: 10,
-      paddingVertical: 10,
-    },
     placeHolder: {
       flex: 1,
-      backgroundColor: 'transparent',
       margin: 10,
       height: 220,
     },
