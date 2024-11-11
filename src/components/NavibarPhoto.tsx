@@ -14,16 +14,17 @@ import SvgDotsVertical from './icons/SvgDotsVertical';
 import NaviBarPhotoProps from '../types/NaviBarPhotoProps';
 import {IconButton} from 'react-native-paper';
 import AcceptMoveModal from './modals/AcceptMoveModal';
-import {useAlbumsRequest} from '../hooks/useAlbumsRequest';
+import RenameAlbumModal from './modals/RenameAlbumModal';
 import {ModalText} from '../../assets/textForModal';
 
 const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({titleAlbum, idAlbum}) => {
   const navigation: any = useNavigation();
   const statusBarHeight: any = StatusBar.currentHeight;
 
-  const {} = useAlbumsRequest();
+  const [title, setTitile] = useState(titleAlbum);
 
   const [isMiniModalVisible, setIsMiniModalVisible] = useState(false);
+  const [isRenameAlbumModal, setIsRenameAlbumModal] = useState(false);
   const [isAcceptMoveModalVisible, setIsAcceptMoveModalVisible] =
     useState(false);
 
@@ -37,6 +38,18 @@ const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({titleAlbum, idAlbum}) => {
 
   const handleCloseAcceptMoveModal = () => {
     setIsAcceptMoveModalVisible(false);
+  };
+
+  const handleOpenRenameAlbumModal = () => {
+    setIsRenameAlbumModal(true);
+  };
+
+  const handleCloseRenameAlbumModal = () => {
+    setIsRenameAlbumModal(false);
+  };
+
+  const updateTitleAlbum = (newTitle: string) => {
+    setTitile(newTitle);
   };
 
   return (
@@ -56,7 +69,7 @@ const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({titleAlbum, idAlbum}) => {
         </View>
         <View style={styles.titleAlbumItem}>
           <Text style={styles.title}>
-            {titleAlbum}
+            {title}
             {'  '}
             {idAlbum}
           </Text>
@@ -76,7 +89,10 @@ const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({titleAlbum, idAlbum}) => {
             <TouchableOpacity onPress={() => console.log('Добавить фото')}>
               <Text style={styles.modalItem}>Добавить фото</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => console.log('Редактировать')}>
+            <TouchableOpacity
+              onPress={() => {
+                handleOpenRenameAlbumModal(), toggleMiniModal();
+              }}>
               <Text style={styles.modalItem}>Редактировать</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -88,6 +104,13 @@ const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({titleAlbum, idAlbum}) => {
           </View>
         </TouchableOpacity>
       </Modal>
+      <RenameAlbumModal
+        visible={isRenameAlbumModal}
+        onClose={handleCloseRenameAlbumModal}
+        onSubmit={updateTitleAlbum}
+        title={titleAlbum}
+        idAlbum={idAlbum}
+      />
       <AcceptMoveModal
         visible={isAcceptMoveModalVisible}
         onClose={handleCloseAcceptMoveModal}

@@ -63,6 +63,23 @@ const useGetAllAlbums = () => {
   };
 };
 
+const useRenameAlbum = () => {
+  return (id, newTitle) => {
+    db.transaction(tx => {
+      tx.executeSql(
+        'UPDATE AlbumsTable SET title = ? WHERE id = ?',
+        [newTitle, id],
+        (_, results) => {
+          console.log(`Альбом с id ${id} переименован в "${newTitle}".`);
+        },
+        error => {
+          console.error('Ошибка при изменении названия альбома:', error);
+        },
+      );
+    });
+  };
+};
+
 const useDeleteAllAlbums = () => {
   return () => {
     db.transaction(tx => {
@@ -145,6 +162,7 @@ export const useShowShemeAlbumsTable = () => {
 export function useAlbumsRequest() {
   const addAlbum = useAddNewAlbumToTable();
   const showAlbums = useShowAlbums();
+  const renameAlbum = useRenameAlbum();
   const deleteAllAlbums = useDeleteAllAlbums();
   const deleteAlbum = useDeleteAlbum();
   const showShemeAlbumsTable = useShowShemeAlbumsTable();
@@ -153,6 +171,7 @@ export function useAlbumsRequest() {
   return {
     addAlbum,
     showAlbums,
+    renameAlbum,
     deleteAllAlbums,
     deleteAlbum,
     showShemeAlbumsTable,

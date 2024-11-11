@@ -94,7 +94,7 @@ const MainPage: React.FC = () => {
 
   const openAlbum = (album: Album) => {
     // console.log('Информация об альбоме:', album);
-    navigation.navigate('PhotoPage', {album}); // Можно использовать для перехода на другую страницу с передачей данных
+    navigation.navigate('PhotoPage', {album});
   };
 
   const styles = getStyles(isDarkTheme);
