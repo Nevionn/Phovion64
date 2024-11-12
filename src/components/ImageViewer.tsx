@@ -9,6 +9,8 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {ReactNativeZoomableView} from '@openspacelabs/react-native-zoomable-view';
+import FastImage from 'react-native-fast-image';
+import Video from 'react-native-video';
 
 const {width, height} = Dimensions.get('window');
 
@@ -44,15 +46,17 @@ const ImageViewer: React.FC<ImageViewerProps> = (
             initialZoom={1}
             bindToBorders={true}
             style={styles.imgView}>
-            <Image
+            <FastImage
               style={styles.image}
               source={require('../../assets/images/EHHttyOYx_Y.jpg')}
+              resizeMode={FastImage.resizeMode.contain}
             />
           </ReactNativeZoomableView>
-          {/* <Image
-            source={require('../../assets/images/EHHttyOYx_Y.jpg')}
-            style={styles.image}
+          {/* <Video
+            source={require('../../assets/images/test.mp4')}
+            style={styles.media}
             resizeMode="contain"
+            controls={true} // Элементы управления видео
           /> */}
         </View>
       </View>
@@ -80,6 +84,10 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'contain',
+  },
+  media: {
+    width: '100%',
+    height: '100%',
   },
   closeButton: {
     position: 'absolute',
