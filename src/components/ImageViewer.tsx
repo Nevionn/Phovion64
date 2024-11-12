@@ -39,7 +39,7 @@ const ImageViewer: React.FC<ImageViewerProps> = (
         </TouchableOpacity>
 
         <View style={styles.imgView}>
-          <ReactNativeZoomableView
+          {/* <ReactNativeZoomableView
             maxZoom={2.5}
             minZoom={1}
             zoomStep={0.5}
@@ -51,12 +51,13 @@ const ImageViewer: React.FC<ImageViewerProps> = (
               source={require('../../assets/images/EHHttyOYx_Y.jpg')}
               resizeMode={FastImage.resizeMode.contain}
             />
-          </ReactNativeZoomableView>
+          </ReactNativeZoomableView> */}
           {/* <Video
             source={require('../../assets/images/test.mp4')}
             style={styles.media}
             resizeMode="contain"
             controls={true} // Элементы управления видео
+            repeat={true}
           /> */}
         </View>
       </View>

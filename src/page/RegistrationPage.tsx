@@ -6,21 +6,19 @@ import {
   Text,
   Dimensions,
   ImageBackground,
-  Alert,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
+import {usePinCodeRequest} from '../hooks/usePinCodeRequest';
 import {COLOR} from '../../assets/colorTheme';
-const {width} = Dimensions.get('window');
-const {height} = Dimensions.get('window');
 import Cbutton from '../components/Cbutton';
 import PinCode from '../components/PinCode';
-import {usePinCodeRequest} from '../hooks/usePinCodeRequest';
+const {width} = Dimensions.get('window');
+const {height} = Dimensions.get('window');
 
 const RegistrationPage = () => {
   const {
     savePinCode,
     skipPin,
-    checkActivePinCode,
     dropTable,
     showTableContent,
     showTables,
@@ -45,27 +43,9 @@ const RegistrationPage = () => {
     navigation.replace('MainPage');
   };
 
-  const redirectToLoginPage = () => {
-    navigation.replace('LoginPage');
-  };
-
   useEffect(() => {
-    console.log('Route params:', route.params);
     const initialPinStage = route.params?.installationPinStage;
     setInstallationPinStage(initialPinStage);
-    console.log('Initial installationPinStage:', initialPinStage);
-
-    checkActivePinCode((isActive: boolean, isSkip: boolean) => {
-      if (initialPinStage) {
-        return;
-      }
-      if (isActive) {
-        redirectToLoginPage();
-      }
-      if (isSkip) {
-        onLoginSuccess();
-      }
-    });
   }, [route.params]);
 
   useEffect(() => {
