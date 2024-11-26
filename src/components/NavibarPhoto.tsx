@@ -1,23 +1,27 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState} from 'react';
 import {
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
   StatusBar,
-  ImageBackground,
   Modal,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import {usePhotoRequest} from '../hooks/usePhotoRequest';
 import SvgLeftArrow from './icons/SvgLeftArrow';
 import SvgDotsVertical from './icons/SvgDotsVertical';
-import NaviBarPhotoProps from '../types/NaviBarPhotoProps';
 import {IconButton} from 'react-native-paper';
+import {ModalText} from '../../assets/textForModal';
+import {launchImageLibrary} from 'react-native-image-picker';
+import eventEmitter from '../../assets/eventEmitter';
+import NaviBarPhotoProps from '../types/NaviBarPhotoProps';
 import AcceptMoveModal from './modals/AcceptMoveModal';
 import RenameAlbumModal from './modals/RenameAlbumModal';
-import {ModalText} from '../../assets/textForModal';
 
 const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({titleAlbum, idAlbum}) => {
+  const {addPhoto} = usePhotoRequest();
+
   const navigation: any = useNavigation();
   const statusBarHeight: any = StatusBar.currentHeight;
 
@@ -50,6 +54,30 @@ const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({titleAlbum, idAlbum}) => {
 
   const updateTitleAlbum = (newTitle: string) => {
     setTitile(newTitle);
+  };
+
+  const pickImage = async () => {
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      includeBase64: true,
+    });
+
+    if (result.assets && result.assets.length > 0) {
+      const {base64, uri} = result.assets[0]; // Получаем base64 и uri изображения
+      if (base64) {
+        try {
+          addPhoto({
+            album_id: idAlbum,
+            title: 'New Photo',
+            photo: base64,
+            created_at: new Date().toLocaleString(),
+          });
+          eventEmitter.emit('photosUpdated');
+        } catch (error) {
+          console.error('Ошибка при загрузке изображения:', error);
+        }
+      }
+    }
   };
 
   return (
@@ -86,7 +114,10 @@ const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({titleAlbum, idAlbum}) => {
           onPress={toggleMiniModal} // Закрытие модалки при нажатии вне
         >
           <View style={styles.modalContent}>
-            <TouchableOpacity onPress={() => console.log('Добавить фото')}>
+            <TouchableOpacity
+              onPress={() => {
+                pickImage(), toggleMiniModal();
+              }}>
               <Text style={styles.modalItem}>Добавить фото</Text>
             </TouchableOpacity>
             <TouchableOpacity

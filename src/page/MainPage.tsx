@@ -19,6 +19,7 @@ import {useNavigation} from '@react-navigation/native';
 import {usePinCodeRequest} from '../hooks/usePinCodeRequest';
 import {useAlbumsRequest} from '../hooks/useAlbumsRequest';
 import {useSettingsRequest} from '../hooks/useSettingsRequest';
+import {usePhotoRequest} from '../hooks/usePhotoRequest';
 import NewAlbumModal from '../components/modals/NewAlbumModal';
 import SettingsModal from '../components/modals/SettingsModal';
 import PhotoPage from './PhotoPage';
@@ -38,10 +39,11 @@ interface Album {
 const MainPage: React.FC = () => {
   const navigation: any = useNavigation();
 
-  const {showTableContent, dropTable} = usePinCodeRequest();
+  const {showTableContent} = usePinCodeRequest();
   const {addAlbum, getAllAlbums, showAlbums, showShemeAlbumsTable} =
     useAlbumsRequest();
   const {acceptSettings, getSettings, showSettings} = useSettingsRequest();
+  const {dropTable} = usePhotoRequest();
 
   const [isModalAddAlbumVisible, setModalAddAlbumVisible] = useState(false);
   const [isSettingsModalVisible, setIsSettingsModalVisible] = useState(false);
@@ -156,7 +158,7 @@ const MainPage: React.FC = () => {
         <Button
           mode="contained"
           onPress={() => {
-            dropTable('PinCodeTable');
+            dropTable('PhotosTable');
           }}>
           Дропнуть таблицу
         </Button>

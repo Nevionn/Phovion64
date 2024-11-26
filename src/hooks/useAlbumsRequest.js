@@ -161,20 +161,20 @@ export const useShowShemeAlbumsTable = () => {
 
 export function useAlbumsRequest() {
   const addAlbum = useAddNewAlbumToTable();
+  const getAllAlbums = useGetAllAlbums();
   const showAlbums = useShowAlbums();
   const renameAlbum = useRenameAlbum();
   const deleteAllAlbums = useDeleteAllAlbums();
   const deleteAlbum = useDeleteAlbum();
   const showShemeAlbumsTable = useShowShemeAlbumsTable();
-  const getAllAlbums = useGetAllAlbums();
 
   return {
     addAlbum,
+    getAllAlbums,
     showAlbums,
     renameAlbum,
     deleteAllAlbums,
     deleteAlbum,
     showShemeAlbumsTable,
-    getAllAlbums,
   };
 }

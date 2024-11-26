@@ -5,6 +5,7 @@ import {Button} from 'react-native-paper';
 const {height} = Dimensions.get('window');
 import {useNavigation} from '@react-navigation/native';
 import {useAlbumsRequest} from '../../hooks/useAlbumsRequest';
+import {usePhotoRequest} from '../../hooks/usePhotoRequest';
 import eventEmitter from '../../../assets/eventEmitter';
 
 interface AcceptMoveModalProps {
@@ -25,12 +26,14 @@ const AcceptMoveModal: React.FC<AcceptMoveModalProps> = ({
   const navigation: any = useNavigation();
 
   const {deleteAllAlbums, deleteAlbum} = useAlbumsRequest();
+  const {deleteAllPhotos} = usePhotoRequest();
 
   const deleteAllAlbumsExpand = () => {
     deleteAllAlbums(), onClose(), eventEmitter.emit('albumsUpdated');
   };
 
   const deleteAlbumExpand = () => {
+    deleteAllPhotos(idAlbum);
     deleteAlbum(idAlbum);
     onClose();
     eventEmitter.emit('albumsUpdated');

@@ -12,40 +12,47 @@ import {
   FlatList,
   TouchableOpacity,
 } from 'react-native';
+import {usePhotoRequest} from '../hooks/usePhotoRequest';
 import {COLOR} from '../../assets/colorTheme';
+import eventEmitter from '../../assets/eventEmitter';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import NavibarPhoto from '../components/NavibarPhoto';
 import ImageViewer from '../components/ImageViewer';
+import {Button} from 'react-native-paper';
+import FastImage from 'react-native-fast-image';
+import {launchImageLibrary} from 'react-native-image-picker';
+import {Buffer} from 'buffer';
 
 interface Photo {
-  id: string;
+  id: number;
+  album_id: number;
+  title: string;
+  photo: any;
+  created_at: string;
 }
 
 const PhotoPage = () => {
+  const {addPhoto, getPhoto, deleteAllPhotos, dropTable, pidoras, showSheme} =
+    usePhotoRequest();
+  const [isDarkTheme, setIsDarkTheme] = useState(true);
+
   const route: any = useRoute();
   const dataAlbum = route?.params;
-  console.log('переданные параметры альбома:', dataAlbum);
 
-  const [photos, setPhotos] = useState<Photo[]>([
-    // {id: '1'},
-    // {id: '2'},
-    // {id: '3'},
-    // {id: '4'},
-    // {id: '5'},
-    // {id: '6'},
-    // {id: '7'},
-    // {id: '8'},
-    // {id: '9'},
-    // {id: '10'},
-    // {id: '11'},
-    // {id: '12'},
-    // {id: '13'},
-    // {id: '14'},
-    // {id: '15'},
-    // {id: '16'},
-    // {id: '17'},
-  ]);
-  const [isDarkTheme, setIsDarkTheme] = useState(true);
+  const [photos, setPhotos] = useState<Photo[]>([]);
+
+  useEffect(() => {
+    const updatePhotos = () => {
+      getPhoto(dataAlbum.album.id, setPhotos);
+    };
+
+    updatePhotos();
+    eventEmitter.on('photosUpdated', updatePhotos);
+
+    return () => {
+      eventEmitter.off('photosUpdated', updatePhotos);
+    };
+  }, []);
 
   const styles = getStyles(isDarkTheme);
   return (
@@ -57,27 +64,36 @@ const PhotoPage = () => {
       />
       <View style={styles.topSpacer} />
       {photos.length > 0 ? (
-        <FlatList
-          data={photos}
-          numColumns={3}
-          keyExtractor={item => item.id}
-          renderItem={({item}) => (
-            <TouchableOpacity
-              style={styles.placeHolder}
-              onPress={() => console.log('test')}>
-              <Image
-                source={require('../../assets/images/EHHttyOYx_Y.jpg')}
-                style={styles.image}
-              />
-            </TouchableOpacity>
-          )}
-        />
+        <React.Fragment>
+          <FlatList
+            data={photos}
+            numColumns={3}
+            keyExtractor={item => item.id.toString()}
+            renderItem={({item}) => (
+              <TouchableOpacity
+                style={styles.placeHolder}
+                onPress={() => console.log('test')}>
+                <FastImage
+                  source={{uri: `data:image/jpeg;base64,${item.photo}`}}
+                  style={styles.image}
+                />
+              </TouchableOpacity>
+            )}
+          />
+          <Button
+            mode="contained"
+            onPress={() => {
+              // dropTable('PhotosTable');
+              deleteAllPhotos(dataAlbum.album.id);
+            }}>
+            drop
+          </Button>
+        </React.Fragment>
       ) : (
         <View style={styles.emptyDataItem}>
           <Text>Тут пусто</Text>
         </View>
       )}
-
       <NavibarPhoto
         titleAlbum={dataAlbum.album.title}
         idAlbum={dataAlbum.album.id}
@@ -121,3 +137,35 @@ const getStyles = (isDarkTheme: boolean) => {
 };
 
 export default PhotoPage;
+
+{
+  /* <Button
+            mode="contained"
+            onPress={() => {
+              pickImage();
+            }}>
+            добавить фото
+          </Button>
+          <View style={{height: 10}} />
+          <Button
+            mode="contained"
+            onPress={() => {
+              dropTable('PhotosTable');
+            }}>
+            drop
+          </Button>
+          <Button
+            mode="contained"
+            onPress={() => {
+              pidoras();
+            }}>
+            чек
+          </Button>
+          <Button
+            mode="contained"
+            onPress={() => {
+              showSheme('PhotosTable');
+            }}>
+            схема
+          </Button> */
+}
