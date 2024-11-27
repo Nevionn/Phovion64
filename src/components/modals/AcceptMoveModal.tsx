@@ -1,52 +1,31 @@
-import React, {useState, useEffect} from 'react';
+import React from 'react';
 import {View, Text, StyleSheet, Modal, Dimensions} from 'react-native';
 import {COLOR} from '../../../assets/colorTheme';
 import {Button} from 'react-native-paper';
 const {height} = Dimensions.get('window');
-import {useNavigation} from '@react-navigation/native';
-import {useAlbumsRequest} from '../../hooks/useAlbumsRequest';
-import {usePhotoRequest} from '../../hooks/usePhotoRequest';
-import eventEmitter from '../../../assets/eventEmitter';
 
 interface AcceptMoveModalProps {
   visible: boolean;
-  onClose: () => void;
+  onClosAcceptModal: () => void;
+  onConfirm: () => void;
   title: string;
   textBody: string;
-  idAlbum?: string;
 }
 
 const AcceptMoveModal: React.FC<AcceptMoveModalProps> = ({
   visible,
-  onClose,
+  onClosAcceptModal,
+  onConfirm,
   title,
   textBody,
-  idAlbum,
 }) => {
-  const navigation: any = useNavigation();
-
-  const {deleteAllAlbums, deleteAlbum} = useAlbumsRequest();
-  const {deleteAllPhotos} = usePhotoRequest();
-
-  const deleteAllAlbumsExpand = () => {
-    deleteAllAlbums(), onClose(), eventEmitter.emit('albumsUpdated');
-  };
-
-  const deleteAlbumExpand = () => {
-    deleteAllPhotos(idAlbum);
-    deleteAlbum(idAlbum);
-    onClose();
-    eventEmitter.emit('albumsUpdated');
-    navigation.goBack();
-  };
-
   return (
     <>
       <Modal
         visible={visible}
         animationType="fade"
         transparent={true}
-        onRequestClose={onClose}>
+        onRequestClose={onClosAcceptModal}>
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
             <View style={styles.textItem}>
@@ -58,12 +37,10 @@ const AcceptMoveModal: React.FC<AcceptMoveModalProps> = ({
               <Button
                 style={styles.button}
                 mode="contained"
-                onPress={() =>
-                  idAlbum ? deleteAlbumExpand() : deleteAllAlbumsExpand()
-                }>
+                onPress={() => onConfirm()}>
                 Удалить
               </Button>
-              <Button mode="contained" onPress={() => onClose()}>
+              <Button mode="contained" onPress={() => onClosAcceptModal()}>
                 Отмена
               </Button>
             </View>

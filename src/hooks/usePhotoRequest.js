@@ -61,7 +61,6 @@ const useGetPhotoFromAlbum = () => {
               photo: row.photo,
               created_at: row.created_at,
             });
-            console.log(photos);
           }
           setPhotos(photos); // Обновляем состояние
         },
@@ -84,6 +83,29 @@ const useDeletePhotosByAlbumId = () => {
         },
         error => {
           console.error('Ошибка при удалении фотографий:', error);
+        },
+      );
+    });
+  };
+};
+
+const useDeletePhoto = () => {
+  return (albumId, photoId) => {
+    db.transaction(tx => {
+      tx.executeSql(
+        'DELETE FROM PhotosTable WHERE album_id = ? AND id = ?', // SQL-запрос
+        [albumId, photoId], // Параметры для подстановки в запрос
+        (_, results) => {
+          if (results.rowsAffected > 0) {
+            console.log(
+              `Фотография с ID ${photoId} из альбома с ID ${albumId} успешно удалена.`,
+            );
+          } else {
+            console.log('Фотография не найдена.');
+          }
+        },
+        error => {
+          console.error('Ошибка при удалении фотографии:', error);
         },
       );
     });
@@ -157,6 +179,7 @@ export function usePhotoRequest() {
   const addPhoto = useAddPhotoInAlbum();
   const getPhoto = useGetPhotoFromAlbum();
   const deleteAllPhotos = useDeletePhotosByAlbumId();
+  const deletePhoto = useDeletePhoto();
   const dropTable = useClearTable();
   const pidoras = useShowPhotos();
   const showSheme = useShowShemePhotoTable();
@@ -164,6 +187,7 @@ export function usePhotoRequest() {
     addPhoto,
     getPhoto,
     deleteAllPhotos,
+    deletePhoto,
     dropTable,
     pidoras,
     showSheme,

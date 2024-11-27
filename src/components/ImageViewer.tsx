@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   Modal,
   StyleSheet,
@@ -11,56 +11,87 @@ import {
 import {ReactNativeZoomableView} from '@openspacelabs/react-native-zoomable-view';
 import FastImage from 'react-native-fast-image';
 import Video from 'react-native-video';
+import EditPhotoMiniModal from './modals/EditPhotoMiniModal';
+import {IconButton} from 'react-native-paper';
+import SvgDotsVertical from './icons/SvgDotsVertical';
+import SvgLeftArrow from './icons/SvgLeftArrow';
 
 const {width, height} = Dimensions.get('window');
 
 interface ImageViewerProps {
-  //   visible: boolean;
-  //   onClose: () => void;
-  //   imageSource: any;
+  visible: boolean;
+  onCloseImgViewer: () => void;
+  infoAboutPhoto: {
+    imageSource: string;
+    countAllImages: number;
+    countPhoto: number;
+    idPhoto: number;
+    idAlbum: number;
+  };
 }
 
-const ImageViewer: React.FC<ImageViewerProps> = (
-  {
-    //   visible,
-    //   onClose,
-    //   imageSource,
-  },
-) => {
+const ImageViewer: React.FC<ImageViewerProps> = ({
+  visible,
+  onCloseImgViewer,
+  infoAboutPhoto,
+}) => {
+  const [isMiniModalVisible, setIsMiniModalVisible] = useState(false);
+
+  const handleOpenMiniModal = () => {
+    setIsMiniModalVisible(true);
+  };
+
+  const handleCloseMiniModal = () => {
+    setIsMiniModalVisible(false);
+  };
+
   return (
     <Modal
-      visible={true}
+      visible={visible}
       transparent={true}
       animationType="fade"
-      onRequestClose={() => {}}>
+      onRequestClose={() => onCloseImgViewer()}>
       <View style={styles.modalContainer}>
-        <TouchableOpacity style={styles.closeButton} onPress={() => {}}>
-          <Text style={styles.closeText}>Close</Text>
-        </TouchableOpacity>
-
-        <View style={styles.imgView}>
-          <ReactNativeZoomableView
-            maxZoom={2.5}
-            minZoom={1}
-            zoomStep={0.5}
-            initialZoom={1}
-            bindToBorders={true}
-            style={styles.imgView}>
-            <FastImage
-              style={styles.image}
-              source={require('../../assets/images/EHHttyOYx_Y.jpg')}
-              resizeMode={FastImage.resizeMode.contain}
-            />
-          </ReactNativeZoomableView>
-          {/* <Video
-            source={require('../../assets/images/test.mp4')}
-            style={styles.media}
-            resizeMode="contain"
-            controls={true} // Элементы управления видео
-            repeat={true}
-          /> */}
+        <View style={styles.infoBar}>
+          <IconButton
+            icon={() => <SvgLeftArrow />}
+            size={30}
+            onPress={() => onCloseImgViewer()}
+          />
+          <Text
+            style={
+              styles.infoText
+            }>{`${infoAboutPhoto.countPhoto} из ${infoAboutPhoto.countAllImages} айди фото ${infoAboutPhoto.idPhoto}`}</Text>
+          <IconButton
+            icon={() => <SvgDotsVertical />}
+            size={30}
+            onPress={() => handleOpenMiniModal()}
+          />
         </View>
+
+        <ReactNativeZoomableView
+          maxZoom={2.5}
+          minZoom={1}
+          zoomStep={0.5}
+          initialZoom={1}
+          bindToBorders={true}
+          style={styles.imgView}>
+          <FastImage
+            style={styles.image}
+            source={{
+              uri: `data:image/jpeg;base64,${infoAboutPhoto.imageSource}`,
+            }}
+            resizeMode={FastImage.resizeMode.contain}
+          />
+        </ReactNativeZoomableView>
       </View>
+      <EditPhotoMiniModal
+        visible={isMiniModalVisible}
+        onCloseEditModal={handleCloseMiniModal}
+        onCloseImgViewer={onCloseImgViewer}
+        idPhoto={infoAboutPhoto.idPhoto}
+        idAlbum={infoAboutPhoto.idAlbum}
+      />
     </Modal>
   );
 };
@@ -70,34 +101,51 @@ export default ImageViewer;
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)', // Полупрозрачный черный фон
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,1)',
+    position: 'relative',
   },
-  imgView: {
-    justifyContent: 'center',
+  infoBar: {
+    justifyContent: 'space-between',
     alignItems: 'center',
-    height: height * 1, // Окно для изображения
-    width: width * 1,
+    flexDirection: 'row',
+    position: 'absolute',
+    top: 0,
+    zIndex: 10,
+    height: 60,
+    width: '100%',
     backgroundColor: 'transparent',
   },
-  image: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'contain',
-  },
-  media: {
-    width: '100%',
-    height: '100%',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
-    zIndex: 1,
-  },
-  closeText: {
+  infoText: {
     color: 'white',
-    fontSize: 18,
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  imgView: {
+    flex: 1,
+    marginTop: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  image: {
+    width: width,
+    height: height - 60, // Высота экрана за вычетом плашки
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-start',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 10,
+    borderRadius: 8,
+    position: 'absolute',
+    right: 10,
+    top: 50, // Здесь задается примерная позиция
+  },
+  modalItem: {
+    padding: 10,
+    fontSize: 16,
+    color: 'black',
   },
 });

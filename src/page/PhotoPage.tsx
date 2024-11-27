@@ -32,14 +32,40 @@ interface Photo {
 }
 
 const PhotoPage = () => {
-  const {addPhoto, getPhoto, deleteAllPhotos, dropTable, pidoras, showSheme} =
+  const {addPhoto, getPhoto, deleteAllPhotos, dropTable, showSheme} =
     usePhotoRequest();
-  const [isDarkTheme, setIsDarkTheme] = useState(true);
 
   const route: any = useRoute();
   const dataAlbum = route?.params;
 
+  const [isDarkTheme, setIsDarkTheme] = useState(true);
+  const [isVisibleImageViewer, setIsVisibleImageViewer] = useState(false);
+
   const [photos, setPhotos] = useState<Photo[]>([]);
+
+  const [infoAboutPhoto, setInfoAboutPhoto] = useState({
+    imageSource: '',
+    countAllImages: 0,
+    countPhoto: 0,
+    idPhoto: 0,
+    idAlbum: 0,
+  });
+
+  const openImageViewer = (src: string, count: number, id: number) => {
+    const photoObject = {
+      imageSource: src,
+      countAllImages: photos.length,
+      countPhoto: count,
+      idPhoto: id,
+      idAlbum: dataAlbum.album.id,
+    };
+    setInfoAboutPhoto(photoObject);
+    setIsVisibleImageViewer(true);
+  };
+
+  const closeImageViewer = () => {
+    setIsVisibleImageViewer(false);
+  };
 
   useEffect(() => {
     const updatePhotos = () => {
@@ -69,10 +95,10 @@ const PhotoPage = () => {
             data={photos}
             numColumns={3}
             keyExtractor={item => item.id.toString()}
-            renderItem={({item}) => (
+            renderItem={({item, index}) => (
               <TouchableOpacity
                 style={styles.placeHolder}
-                onPress={() => console.log('test')}>
+                onPress={() => openImageViewer(item.photo, index + 1, item.id)}>
                 <FastImage
                   source={{uri: `data:image/jpeg;base64,${item.photo}`}}
                   style={styles.image}
@@ -98,9 +124,13 @@ const PhotoPage = () => {
         titleAlbum={dataAlbum.album.title}
         idAlbum={dataAlbum.album.id}
       />
-      {/* <View>
-        <ImageViewer />
-      </View> */}
+      <View>
+        <ImageViewer
+          visible={isVisibleImageViewer}
+          onCloseImgViewer={closeImageViewer}
+          infoAboutPhoto={infoAboutPhoto}
+        />
+      </View>
     </View>
   );
 };

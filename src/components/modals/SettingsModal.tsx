@@ -4,9 +4,11 @@ import {Picker} from '@react-native-picker/picker';
 import {Button, Divider} from 'react-native-paper';
 import {COLOR} from '../../../assets/colorTheme';
 import {ModalText} from '../../../assets/textForModal';
+import {useAlbumsRequest} from '../../hooks/useAlbumsRequest';
 import {useSettingsRequest} from '../../hooks/useSettingsRequest';
 import {usePinCodeRequest} from '../../hooks/usePinCodeRequest';
 import {useNavigation} from '@react-navigation/native';
+import eventEmitter from '../../../assets/eventEmitter';
 import SvgPassword from '../icons/SvgPassword';
 import SvgDeleteAlbums from '../icons/SvgDeleteAlbums';
 import AcceptMoveModal from './AcceptMoveModal';
@@ -27,6 +29,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose,
   onSave,
 }) => {
+  const {deleteAllAlbums} = useAlbumsRequest();
   const navigation: any = useNavigation();
 
   const {checkActivePinCode} = usePinCodeRequest();
@@ -85,6 +88,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     });
     getSettings(setSettings);
   }, []);
+
+  const deleteAllAlbumsExpand = () => {
+    deleteAllAlbums(),
+      handleCloseAcceptModal(),
+      eventEmitter.emit('albumsUpdated');
+  };
 
   return (
     <Modal
@@ -171,7 +180,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         </View>
         <AcceptMoveModal
           visible={isVisibleAcceptModal}
-          onClose={handleCloseAcceptModal}
+          onClosAcceptModal={handleCloseAcceptModal}
+          onConfirm={deleteAllAlbumsExpand}
           title={ModalText.deleteAllAlbums.title}
           textBody={ModalText.deleteAllAlbums.textBody}
         />

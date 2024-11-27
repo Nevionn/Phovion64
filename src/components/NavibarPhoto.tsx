@@ -9,18 +9,20 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {usePhotoRequest} from '../hooks/usePhotoRequest';
+import eventEmitter from '../../assets/eventEmitter';
+import {useAlbumsRequest} from '../hooks/useAlbumsRequest';
 import SvgLeftArrow from './icons/SvgLeftArrow';
 import SvgDotsVertical from './icons/SvgDotsVertical';
 import {IconButton} from 'react-native-paper';
 import {ModalText} from '../../assets/textForModal';
 import {launchImageLibrary} from 'react-native-image-picker';
-import eventEmitter from '../../assets/eventEmitter';
 import NaviBarPhotoProps from '../types/NaviBarPhotoProps';
 import AcceptMoveModal from './modals/AcceptMoveModal';
 import RenameAlbumModal from './modals/RenameAlbumModal';
 
 const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({titleAlbum, idAlbum}) => {
-  const {addPhoto} = usePhotoRequest();
+  const {deleteAlbum} = useAlbumsRequest();
+  const {addPhoto, deleteAllPhotos} = usePhotoRequest();
 
   const navigation: any = useNavigation();
   const statusBarHeight: any = StatusBar.currentHeight;
@@ -63,12 +65,13 @@ const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({titleAlbum, idAlbum}) => {
     });
 
     if (result.assets && result.assets.length > 0) {
-      const {base64, uri} = result.assets[0]; // Получаем base64 и uri изображения
+      const {base64, uri, fileName} = result.assets[0];
+
       if (base64) {
         try {
           addPhoto({
             album_id: idAlbum,
-            title: 'New Photo',
+            title: fileName,
             photo: base64,
             created_at: new Date().toLocaleString(),
           });
@@ -78,6 +81,14 @@ const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({titleAlbum, idAlbum}) => {
         }
       }
     }
+  };
+
+  const deleteAlbumExpand = () => {
+    deleteAllPhotos(idAlbum);
+    deleteAlbum(idAlbum);
+    handleCloseAcceptMoveModal();
+    eventEmitter.emit('albumsUpdated');
+    navigation.goBack();
   };
 
   return (
@@ -144,10 +155,10 @@ const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({titleAlbum, idAlbum}) => {
       />
       <AcceptMoveModal
         visible={isAcceptMoveModalVisible}
-        onClose={handleCloseAcceptMoveModal}
+        onClosAcceptModal={handleCloseAcceptMoveModal}
+        onConfirm={deleteAlbumExpand}
         title={ModalText.deleteAlbum.title}
         textBody={ModalText.deleteAlbum.textBody}
-        idAlbum={idAlbum}
       />
     </>
   );
@@ -164,8 +175,6 @@ const styles = StyleSheet.create({
     height: 100,
     width: '100%',
     zIndex: 10,
-    // borderWidth: 1,
-    // borderColor: 'red',
   },
   manipulationItem: {
     justifyContent: 'space-between',
