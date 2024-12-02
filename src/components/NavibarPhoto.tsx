@@ -76,6 +76,7 @@ const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({titleAlbum, idAlbum}) => {
             created_at: new Date().toLocaleString(),
           });
           eventEmitter.emit('photosUpdated');
+          eventEmitter.emit('albumsUpdated');
         } catch (error) {
           console.error('Ошибка при загрузке изображения:', error);
         }

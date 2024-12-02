@@ -21,9 +21,32 @@ db.transaction(tx => {
   );
 });
 
+// const useAddPhotoInAlbum = () => {
+//   return photoData => {
+//     db.transaction(tx => {
+//       tx.executeSql(
+//         'INSERT INTO PhotosTable (album_id, title, photo, created_at) VALUES (?, ?, ?, ?)',
+//         [
+//           photoData.album_id,
+//           photoData.title,
+//           photoData.photo,
+//           photoData.created_at,
+//         ],
+//         (_, results) => {
+//           console.log('Фотография успешно добавлена в альбом.');
+//         },
+//         error => {
+//           console.error('Ошибка при добавлении фотографии:', error);
+//         },
+//       );
+//     });
+//   };
+// };
+
 const useAddPhotoInAlbum = () => {
   return photoData => {
     db.transaction(tx => {
+      // Добавление фотографии
       tx.executeSql(
         'INSERT INTO PhotosTable (album_id, title, photo, created_at) VALUES (?, ?, ?, ?)',
         [
@@ -34,6 +57,20 @@ const useAddPhotoInAlbum = () => {
         ],
         (_, results) => {
           console.log('Фотография успешно добавлена в альбом.');
+          // После успешного добавления обновляем счётчик фотографий
+          tx.executeSql(
+            'UPDATE AlbumsTable SET countPhoto = countPhoto + 1 WHERE id = ?',
+            [photoData.album_id],
+            (_, updateResults) => {
+              console.log('Счётчик фотографий успешно обновлён.');
+            },
+            error => {
+              console.error(
+                'Ошибка при обновлении счётчика фотографий:',
+                error,
+              );
+            },
+          );
         },
         error => {
           console.error('Ошибка при добавлении фотографии:', error);

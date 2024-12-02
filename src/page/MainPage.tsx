@@ -63,6 +63,7 @@ const MainPage: React.FC = () => {
   useEffect(() => {
     const updateAlbums = () => {
       getAllAlbums(setAlbums, appSettings.sortOrder);
+      console.log(albums);
     };
 
     updateAlbums();
