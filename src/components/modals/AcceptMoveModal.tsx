@@ -6,7 +6,7 @@ const {height} = Dimensions.get('window');
 
 interface AcceptMoveModalProps {
   visible: boolean;
-  onClosAcceptModal: () => void;
+  onCloseAcceptModal: () => void;
   onConfirm: () => void;
   title: string;
   textBody: string;
@@ -14,7 +14,7 @@ interface AcceptMoveModalProps {
 
 const AcceptMoveModal: React.FC<AcceptMoveModalProps> = ({
   visible,
-  onClosAcceptModal,
+  onCloseAcceptModal,
   onConfirm,
   title,
   textBody,
@@ -25,7 +25,7 @@ const AcceptMoveModal: React.FC<AcceptMoveModalProps> = ({
         visible={visible}
         animationType="fade"
         transparent={true}
-        onRequestClose={onClosAcceptModal}>
+        onRequestClose={onCloseAcceptModal}>
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
             <View style={styles.textItem}>
@@ -40,7 +40,7 @@ const AcceptMoveModal: React.FC<AcceptMoveModalProps> = ({
                 onPress={() => onConfirm()}>
                 Удалить
               </Button>
-              <Button mode="contained" onPress={() => onClosAcceptModal()}>
+              <Button mode="contained" onPress={() => onCloseAcceptModal()}>
                 Отмена
               </Button>
             </View>

@@ -155,7 +155,7 @@ const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({titleAlbum, idAlbum}) => {
       />
       <AcceptMoveModal
         visible={isAcceptMoveModalVisible}
-        onClosAcceptModal={handleCloseAcceptMoveModal}
+        onCloseAcceptModal={handleCloseAcceptMoveModal}
         onConfirm={deleteAlbumExpand}
         title={ModalText.deleteAlbum.title}
         textBody={ModalText.deleteAlbum.textBody}

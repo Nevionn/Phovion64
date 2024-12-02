@@ -1,13 +1,5 @@
 import React, {useState} from 'react';
-import {
-  Modal,
-  StyleSheet,
-  Text,
-  View,
-  Dimensions,
-  Image,
-  TouchableOpacity,
-} from 'react-native';
+import {Modal, StyleSheet, Text, View, TouchableOpacity} from 'react-native';
 import {usePhotoRequest} from '../../hooks/usePhotoRequest';
 import eventEmitter from '../../../assets/eventEmitter';
 import AcceptMoveModal from './AcceptMoveModal';
@@ -45,9 +37,6 @@ const EditPhotoMiniModal: React.FC<EditPhotoMiniModalProps> = ({
     handleCloseAcceptMoveModal();
     onCloseImgViewer();
     eventEmitter.emit('photosUpdated');
-
-    console.log('айди альбома ', idAlbum);
-    console.log('айди фото ', idPhoto);
   };
 
   return (
@@ -75,13 +64,10 @@ const EditPhotoMiniModal: React.FC<EditPhotoMiniModalProps> = ({
       </Modal>
       <AcceptMoveModal
         visible={isAcceptMoveModalVisible}
-        onClosAcceptModal={() => handleCloseAcceptMoveModal()}
-        // onCloseImgViewer={onCloseImgViewer}
+        onCloseAcceptModal={() => handleCloseAcceptMoveModal()}
         onConfirm={deletePhotoExpand}
         title={ModalText.deletePhoto.title}
         textBody={ModalText.deletePhoto.textBody}
-        // idPhoto={idPhoto}
-        // idAlbum={idAlbum}
       />
     </>
   );

@@ -180,7 +180,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         </View>
         <AcceptMoveModal
           visible={isVisibleAcceptModal}
-          onClosAcceptModal={handleCloseAcceptModal}
+          onCloseAcceptModal={handleCloseAcceptModal}
           onConfirm={deleteAllAlbumsExpand}
           title={ModalText.deleteAllAlbums.title}
           textBody={ModalText.deleteAllAlbums.textBody}
