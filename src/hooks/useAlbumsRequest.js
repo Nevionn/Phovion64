@@ -51,7 +51,7 @@ const useGetAllAlbums = () => {
         (tx, results) => {
           const albumsList = [];
           for (let i = 0; i < results.rows.length; i++) {
-            albumsList.push(results.rows.item(i));
+            albumsList.unshift(results.rows.item(i));
           }
           setAlbums(albumsList);
         },
