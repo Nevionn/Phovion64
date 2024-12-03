@@ -51,35 +51,17 @@ const useAddPhotoInAlbum = () => {
             },
           );
 
-          // Проверка и установка обложки, если её нет
+          // Устанавливаем текущую фотографию как обложку, без проверки
           tx.executeSql(
-            'SELECT coverPhoto FROM AlbumsTable WHERE id = ?',
-            [photoData.album_id],
-            (_, selectResults) => {
-              const coverPhoto = selectResults.rows.item(0)?.coverPhoto;
-
-              if (!coverPhoto) {
-                // Устанавливаем текущую фотографию как обложку
-                tx.executeSql(
-                  'UPDATE AlbumsTable SET coverPhoto = ? WHERE id = ?',
-                  [photoData.photo, photoData.album_id],
-                  () => {
-                    console.log('Обложка альбома обновлена.');
-                  },
-                  error => {
-                    console.error(
-                      'Ошибка при обновлении обложки альбома:',
-                      error,
-                    );
-                  },
-                );
-              }
+            'UPDATE AlbumsTable SET coverPhoto = ? WHERE id = ?',
+            [photoData.photo, photoData.album_id],
+            () => {
+              console.log(
+                'Обложка альбома обновлена на последнюю добавленную фотографию.',
+              );
             },
             error => {
-              console.error(
-                'Ошибка при проверке текущей обложки альбома:',
-                error,
-              );
+              console.error('Ошибка при обновлении обложки альбома:', error);
             },
           );
         },
@@ -166,12 +148,61 @@ const useDeletePhoto = () => {
             console.log(
               `Фотография с ID ${photoId} из альбома с ID ${albumId} успешно удалена.`,
             );
-            // После успешного удаления обновляем счётчик фотографий
+
+            // Обновляем счётчик фотографий
             tx.executeSql(
               'UPDATE AlbumsTable SET countPhoto = countPhoto - 1 WHERE id = ? AND countPhoto > 0',
               [albumId],
               (_, updateResults) => {
                 console.log('Счётчик фотографий успешно обновлён.');
+
+                // Проверяем оставшиеся фотографии
+                tx.executeSql(
+                  'SELECT photo FROM PhotosTable WHERE album_id = ? ORDER BY created_at DESC LIMIT 1',
+                  [albumId],
+                  (_, selectResults) => {
+                    if (selectResults.rows.length > 0) {
+                      // Устанавливаем последнюю оставшуюся фотографию как обложку
+                      const lastPhoto = selectResults.rows.item(0).photo;
+                      tx.executeSql(
+                        'UPDATE AlbumsTable SET coverPhoto = ? WHERE id = ?',
+                        [lastPhoto, albumId],
+                        () => {
+                          console.log(
+                            'Обложка альбома успешно обновлена на последнюю доступную фотографию.',
+                          );
+                        },
+                        error => {
+                          console.error(
+                            'Ошибка при обновлении обложки альбома:',
+                            error,
+                          );
+                        },
+                      );
+                    } else {
+                      // Если фотографий больше нет, обнуляем обложку
+                      tx.executeSql(
+                        'UPDATE AlbumsTable SET coverPhoto = NULL WHERE id = ?',
+                        [albumId],
+                        () => {
+                          console.log('Обложка альбома обнулена.');
+                        },
+                        error => {
+                          console.error(
+                            'Ошибка при обнулении обложки альбома:',
+                            error,
+                          );
+                        },
+                      );
+                    }
+                  },
+                  error => {
+                    console.error(
+                      'Ошибка при проверке оставшихся фотографий:',
+                      error,
+                    );
+                  },
+                );
               },
               error => {
                 console.error(
