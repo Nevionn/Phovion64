@@ -51,17 +51,42 @@ const useAddPhotoInAlbum = () => {
             },
           );
 
-          // Устанавливаем текущую фотографию как обложку, без проверки
+          // Проверяем установлена ли фотография в качестве обложки в ручную
           tx.executeSql(
-            'UPDATE AlbumsTable SET coverPhoto = ? WHERE id = ?',
-            [photoData.photo, photoData.album_id],
-            () => {
-              console.log(
-                'Обложка альбома обновлена на последнюю добавленную фотографию.',
-              );
+            'SELECT manualCoverMode FROM AlbumsTable WHERE id = ?',
+            [photoData.album_id],
+            (_, selectResults) => {
+              const manualCoverMode =
+                selectResults.rows.item(0)?.manualCoverMode;
+
+              if (!manualCoverMode) {
+                // Устанавливаем текущую фотографию как обложку
+                tx.executeSql(
+                  'UPDATE AlbumsTable SET coverPhoto = ? WHERE id = ?',
+                  [photoData.photo, photoData.album_id],
+                  () => {
+                    console.log(
+                      'Обложка альбома обновлена на последнюю добавленную фотографию.',
+                    );
+                  },
+                  error => {
+                    console.error(
+                      'Ошибка при обновлении обложки альбома:',
+                      error,
+                    );
+                  },
+                );
+              } else {
+                console.log(
+                  'Обложка не обновлена, так как включён ручной режим.',
+                );
+              }
             },
             error => {
-              console.error('Ошибка при обновлении обложки альбома:', error);
+              console.error(
+                'Ошибка при проверке режима установки обложки:',
+                error,
+              );
             },
           );
         },
@@ -156,40 +181,82 @@ const useDeletePhoto = () => {
               (_, updateResults) => {
                 console.log('Счётчик фотографий успешно обновлён.');
 
-                // Проверяем оставшиеся фотографии
+                // Проверяем количество оставшихся фотографий в альбоме
                 tx.executeSql(
-                  'SELECT photo FROM PhotosTable WHERE album_id = ? ORDER BY created_at DESC LIMIT 1',
+                  'SELECT COUNT(*) as photoCount FROM PhotosTable WHERE album_id = ?',
                   [albumId],
-                  (_, selectResults) => {
-                    if (selectResults.rows.length > 0) {
-                      // Устанавливаем последнюю оставшуюся фотографию как обложку
-                      const lastPhoto = selectResults.rows.item(0).photo;
+                  (_, countResults) => {
+                    const photoCount = countResults.rows.item(0)?.photoCount;
+
+                    if (photoCount === 0) {
+                      // Если фотографий больше нет, обнуляем обложку и сбрасываем manualCoverMode
                       tx.executeSql(
-                        'UPDATE AlbumsTable SET coverPhoto = ? WHERE id = ?',
-                        [lastPhoto, albumId],
+                        'UPDATE AlbumsTable SET coverPhoto = NULL, manualCoverMode = 0 WHERE id = ?',
+                        [albumId],
                         () => {
                           console.log(
-                            'Обложка альбома успешно обновлена на последнюю доступную фотографию.',
+                            'Обложка альбома удалена, manualCoverMode сброшен в 0.',
                           );
                         },
                         error => {
                           console.error(
-                            'Ошибка при обновлении обложки альбома:',
+                            'Ошибка при обнулении обложки и сбросе manualCoverMode:',
                             error,
                           );
                         },
                       );
                     } else {
-                      // Если фотографий больше нет, обнуляем обложку
+                      // Если manualCoverMode не активен, обновляем обложку на последнюю оставшуюся фотографию
                       tx.executeSql(
-                        'UPDATE AlbumsTable SET coverPhoto = NULL WHERE id = ?',
+                        'SELECT manualCoverMode FROM AlbumsTable WHERE id = ?',
                         [albumId],
-                        () => {
-                          console.log('Обложка альбома обнулена.');
+                        (_, selectResults) => {
+                          const manualCoverMode =
+                            selectResults.rows.item(0)?.manualCoverMode;
+
+                          if (!manualCoverMode) {
+                            // Выбираем последнюю фотографию
+                            tx.executeSql(
+                              'SELECT photo FROM PhotosTable WHERE album_id = ? ORDER BY created_at DESC LIMIT 1',
+                              [albumId],
+                              (_, photoResults) => {
+                                if (photoResults.rows.length > 0) {
+                                  const lastPhoto =
+                                    photoResults.rows.item(0).photo;
+
+                                  tx.executeSql(
+                                    'UPDATE AlbumsTable SET coverPhoto = ? WHERE id = ?',
+                                    [lastPhoto, albumId],
+                                    () => {
+                                      console.log(
+                                        'Обложка альбома обновлена на последнюю доступную фотографию.',
+                                      );
+                                    },
+                                    error => {
+                                      console.error(
+                                        'Ошибка при обновлении обложки альбома:',
+                                        error,
+                                      );
+                                    },
+                                  );
+                                }
+                              },
+                              error => {
+                                console.error(
+                                  'Ошибка при проверке оставшихся фотографий:',
+                                  error,
+                                );
+                              },
+                            );
+                          } else {
+                            console.log(
+                              'Ручной режим установлен, обложка не обновляется.',
+                            );
+                          }
                         },
                         error => {
                           console.error(
-                            'Ошибка при обнулении обложки альбома:',
+                            'Ошибка при проверке режима установки обложки:',
                             error,
                           );
                         },
@@ -198,7 +265,7 @@ const useDeletePhoto = () => {
                   },
                   error => {
                     console.error(
-                      'Ошибка при проверке оставшихся фотографий:',
+                      'Ошибка при проверке количества оставшихся фотографий:',
                       error,
                     );
                   },

@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {Modal, StyleSheet, Text, View, TouchableOpacity} from 'react-native';
 import {usePhotoRequest} from '../../hooks/usePhotoRequest';
+import {useAlbumsRequest} from '../../hooks/useAlbumsRequest';
 import eventEmitter from '../../../assets/eventEmitter';
 import AcceptMoveModal from './AcceptMoveModal';
 import {ModalText} from '../../../assets/textForModal';
@@ -21,6 +22,7 @@ const EditPhotoMiniModal: React.FC<EditPhotoMiniModalProps> = ({
   idAlbum,
 }) => {
   const {deletePhoto} = usePhotoRequest();
+  const {setAlbumCover} = useAlbumsRequest();
 
   const [isAcceptMoveModalVisible, setIsAcceptMoveModalVisible] =
     useState(false);
@@ -33,10 +35,16 @@ const EditPhotoMiniModal: React.FC<EditPhotoMiniModalProps> = ({
   };
 
   const deletePhotoExpand = () => {
-    deletePhoto(idAlbum, idPhoto); // дописать метод (понизить счетчик фотографий - 1) !
+    deletePhoto(idAlbum, idPhoto);
     handleCloseAcceptMoveModal();
     onCloseImgViewer();
     eventEmitter.emit('photosUpdated');
+    eventEmitter.emit('albumsUpdated');
+  };
+
+  const setAlbumCoverExpand = () => {
+    setAlbumCover(idAlbum, idPhoto);
+    onCloseEditModal();
     eventEmitter.emit('albumsUpdated');
   };
 
@@ -57,7 +65,7 @@ const EditPhotoMiniModal: React.FC<EditPhotoMiniModalProps> = ({
               }}>
               <Text style={styles.modalItem}>Удалить</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => {}}>
+            <TouchableOpacity onPress={() => setAlbumCoverExpand()}>
               <Text style={styles.modalItem}>Сделать обложкой</Text>
             </TouchableOpacity>
           </View>

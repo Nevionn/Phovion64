@@ -4,7 +4,7 @@ const db = SQLite.openDatabase({name: 'database.db', location: 'default'});
 
 db.transaction(tx => {
   tx.executeSql(
-    'CREATE TABLE IF NOT EXISTS AlbumsTable (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, countPhoto INTEGER, created_at TEXT, coverPhoto TEXT)',
+    'CREATE TABLE IF NOT EXISTS AlbumsTable (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, countPhoto INTEGER, created_at TEXT, coverPhoto TEXT, manualCoverMode INTEGER DEFAULT 0)',
     [],
     (tx, results) => {
       console.log('Таблица альбомов создана');
@@ -74,6 +74,50 @@ const useRenameAlbum = () => {
         },
         error => {
           console.error('Ошибка при изменении названия альбома:', error);
+        },
+      );
+    });
+  };
+};
+
+const useSetAlbumCover = () => {
+  return (albumId, photoId) => {
+    db.transaction(tx => {
+      // Получение данных фотографии, которую нужно установить как обложку
+      tx.executeSql(
+        'SELECT photo FROM PhotosTable WHERE album_id = ? AND id = ?',
+        [albumId, photoId],
+        (_, selectResults) => {
+          if (selectResults.rows.length > 0) {
+            const selectedPhoto = selectResults.rows.item(0).photo;
+
+            // Установка выбранной фотографии как обложки и активация ручного режима
+            tx.executeSql(
+              'UPDATE AlbumsTable SET coverPhoto = ?, manualCoverMode = 1 WHERE id = ?',
+              [selectedPhoto, albumId],
+              () => {
+                console.log(
+                  `Фотография с ID ${photoId} установлена в качестве обложки альбома с ID ${albumId}.`,
+                );
+              },
+              error => {
+                console.error(
+                  'Ошибка при установке выбранной фотографии как обложки:',
+                  error,
+                );
+              },
+            );
+          } else {
+            console.log(
+              `Фотография с ID ${photoId} в альбоме с ID ${albumId} не найдена.`,
+            );
+          }
+        },
+        error => {
+          console.error(
+            'Ошибка при получении данных фотографии для установки обложки:',
+            error,
+          );
         },
       );
     });
@@ -164,6 +208,7 @@ export function useAlbumsRequest() {
   const getAllAlbums = useGetAllAlbums();
   const showAlbums = useShowAlbums();
   const renameAlbum = useRenameAlbum();
+  const setAlbumCover = useSetAlbumCover();
   const deleteAllAlbums = useDeleteAllAlbums();
   const deleteAlbum = useDeleteAlbum();
   const showShemeAlbumsTable = useShowShemeAlbumsTable();
@@ -173,6 +218,7 @@ export function useAlbumsRequest() {
     getAllAlbums,
     showAlbums,
     renameAlbum,
+    setAlbumCover,
     deleteAllAlbums,
     deleteAlbum,
     showShemeAlbumsTable,
