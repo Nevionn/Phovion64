@@ -1,13 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {
-  Modal,
-  StyleSheet,
-  Text,
-  View,
-  Dimensions,
-  Image,
-  TouchableOpacity,
-} from 'react-native';
+import {Modal, StyleSheet, Text, View, Dimensions} from 'react-native';
 import {ReactNativeZoomableView} from '@openspacelabs/react-native-zoomable-view';
 import FastImage from 'react-native-fast-image';
 import Video from 'react-native-video';
@@ -17,6 +9,7 @@ import SvgDotsVertical from './icons/SvgDotsVertical';
 import SvgLeftArrow from './icons/SvgLeftArrow';
 
 const {width, height} = Dimensions.get('window');
+const INFOBAR_HEIGHT = 60;
 
 interface ImageViewerProps {
   visible: boolean;
@@ -36,55 +29,65 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
   infoAboutPhoto,
 }) => {
   const [isMiniModalVisible, setIsMiniModalVisible] = useState(false);
+  const [imageDimensions, setImageDimensions] = useState({width: 1, height: 1});
 
-  const handleOpenMiniModal = () => {
-    setIsMiniModalVisible(true);
+  const handleOpenMiniModal = () => setIsMiniModalVisible(true);
+  const handleCloseMiniModal = () => setIsMiniModalVisible(false);
+
+  const handleImageLoad = (event: any) => {
+    const {width: imgWidth, height: imgHeight} = event.nativeEvent;
+    setImageDimensions({width: imgWidth, height: imgHeight});
   };
 
-  const handleCloseMiniModal = () => {
-    setIsMiniModalVisible(false);
-  };
+  const aspectRatio = imageDimensions.width / imageDimensions.height;
+
+  const contentWidth = width;
+  const contentHeight = Math.min(width / aspectRatio, height - INFOBAR_HEIGHT);
 
   return (
     <Modal
       visible={visible}
       transparent={true}
       animationType="fade"
-      onRequestClose={() => onCloseImgViewer()}>
+      onRequestClose={onCloseImgViewer}>
       <View style={styles.modalContainer}>
         <View style={styles.infoBar}>
           <IconButton
             icon={() => <SvgLeftArrow />}
             size={30}
-            onPress={() => onCloseImgViewer()}
+            onPress={onCloseImgViewer}
           />
-          <Text
-            style={
-              styles.infoText
-            }>{`${infoAboutPhoto.countPhoto} из ${infoAboutPhoto.countAllImages} айди фото ${infoAboutPhoto.idPhoto}`}</Text>
+          <Text style={styles.infoText}>
+            {`${infoAboutPhoto.countPhoto} из ${infoAboutPhoto.countAllImages}`}
+          </Text>
           <IconButton
             icon={() => <SvgDotsVertical />}
             size={30}
-            onPress={() => handleOpenMiniModal()}
+            onPress={handleOpenMiniModal}
           />
         </View>
 
-        <ReactNativeZoomableView
-          maxZoom={2.5}
-          minZoom={1}
-          zoomStep={0.5}
-          initialZoom={1}
-          bindToBorders={true}
-          style={styles.imgView}>
-          <FastImage
-            style={styles.image}
-            source={{
-              uri: `data:image/jpeg;base64,${infoAboutPhoto.imageSource}`,
-            }}
-            resizeMode={FastImage.resizeMode.contain}
-          />
-        </ReactNativeZoomableView>
+        <View style={styles.zoomableViewContainer}>
+          <ReactNativeZoomableView
+            maxZoom={2.5}
+            minZoom={1}
+            zoomStep={0.5}
+            initialZoom={1}
+            bindToBorders={true}
+            contentWidth={contentWidth}
+            contentHeight={contentHeight}>
+            <FastImage
+              style={{width: contentWidth, height: contentHeight}}
+              source={{
+                uri: `data:image/jpeg;base64,${infoAboutPhoto.imageSource}`,
+              }}
+              resizeMode={FastImage.resizeMode.contain}
+              onLoad={handleImageLoad}
+            />
+          </ReactNativeZoomableView>
+        </View>
       </View>
+
       <EditPhotoMiniModal
         visible={isMiniModalVisible}
         onCloseEditModal={handleCloseMiniModal}
@@ -113,39 +116,15 @@ const styles = StyleSheet.create({
     zIndex: 10,
     height: 60,
     width: '100%',
-    backgroundColor: 'transparent',
+    backgroundColor: 'black',
   },
   infoText: {
     color: 'white',
     textAlign: 'center',
     fontSize: 16,
   },
-  imgView: {
+  zoomableViewContainer: {
     flex: 1,
-    marginTop: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  image: {
-    width: width,
-    height: height - 60, // Высота экрана за вычетом плашки
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-start',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    padding: 10,
-    borderRadius: 8,
-    position: 'absolute',
-    right: 10,
-    top: 50, // Здесь задается примерная позиция
-  },
-  modalItem: {
-    padding: 10,
-    fontSize: 16,
-    color: 'black',
+    marginTop: INFOBAR_HEIGHT,
   },
 });

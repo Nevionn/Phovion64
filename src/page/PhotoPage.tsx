@@ -106,14 +106,6 @@ const PhotoPage = () => {
               </TouchableOpacity>
             )}
           />
-          <Button
-            mode="contained"
-            onPress={() => {
-              // dropTable('PhotosTable');
-              deleteAllPhotos(dataAlbum.album.id);
-            }}>
-            drop
-          </Button>
         </React.Fragment>
       ) : (
         <View style={styles.emptyDataItem}>
@@ -167,35 +159,3 @@ const getStyles = (isDarkTheme: boolean) => {
 };
 
 export default PhotoPage;
-
-{
-  /* <Button
-            mode="contained"
-            onPress={() => {
-              pickImage();
-            }}>
-            добавить фото
-          </Button>
-          <View style={{height: 10}} />
-          <Button
-            mode="contained"
-            onPress={() => {
-              dropTable('PhotosTable');
-            }}>
-            drop
-          </Button>
-          <Button
-            mode="contained"
-            onPress={() => {
-              pidoras();
-            }}>
-            чек
-          </Button>
-          <Button
-            mode="contained"
-            onPress={() => {
-              showSheme('PhotosTable');
-            }}>
-            схема
-          </Button> */
-}
