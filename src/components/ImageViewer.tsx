@@ -5,20 +5,14 @@ import {
   Modal,
   Dimensions,
   FlatList,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   StyleSheet,
   Image,
-  PixelRatio,
-  ViewToken,
 } from 'react-native';
 import {ReactNativeZoomableView} from '@openspacelabs/react-native-zoomable-view';
-import FastImage from 'react-native-fast-image';
 import {IconButton} from 'react-native-paper';
 import SvgDotsVertical from './icons/SvgDotsVertical';
 import SvgLeftArrow from './icons/SvgLeftArrow';
 import EditPhotoMiniModal from './modals/EditPhotoMiniModal';
-// import { Image } from 'react-native-svg';
 
 const {width, height} = Dimensions.get('window');
 const INFOBAR_HEIGHT = 60;
@@ -46,8 +40,8 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
   idPhoto,
 }) => {
   const [imageDimensions, setImageDimensions] = useState({
-    width: 640,
-    height: 1138,
+    width: 1,
+    height: 1,
   });
   const [isMiniModalVisible, setIsMiniModalVisible] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -60,36 +54,59 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
   const handleCloseMiniModal = () => setIsMiniModalVisible(false);
 
   useEffect(() => {
-    if (currentPhoto?.photo) {
-      Image.getSize(
-        `data:image/jpeg;base64,${currentPhoto.photo}`,
-        (width, height) => {
-          console.log(width, height);
-          setImageDimensions({width, height});
-        },
-        error => {
-          console.error('Ошибка при получении размеров изображения:', error);
-        },
-      );
-    }
+    const getSizeAndCalculateView = () => {
+      if (currentPhoto?.photo) {
+        Image.getSize(
+          `data:image/jpeg;base64,${currentPhoto.photo}`,
+          (imgWidth, imgHeight) => {
+            console.log('Image dimensions:', imgWidth, imgHeight);
+
+            // Вычисляем масштабирование
+            const aspectRatio = imgWidth / imgHeight;
+            const maxWidth = width;
+            const maxHeight = height;
+            const displayWidth = Math.min(maxWidth, maxHeight * aspectRatio);
+            const displayHeight = Math.min(maxHeight, maxWidth / aspectRatio);
+
+            setImageDimensions({
+              width: displayWidth,
+              height: displayHeight,
+            });
+          },
+          error => {
+            console.error('Ошибка при получении размеров изображения:', error);
+          },
+        );
+      }
+    };
+
+    getSizeAndCalculateView();
   }, [currentPhoto]);
 
-  useEffect(() => {
-    if (photos[currentIndex]) {
-      setCurrentPhoto(photos[currentIndex]);
-    }
-  }, [currentIndex, photos]);
+  // синхронизируем текущее фото с изменениями индекса
+  useEffect(
+    function changeIndexCarousel() {
+      if (photos[currentIndex]) {
+        setCurrentPhoto(photos[currentIndex]);
+      }
+    },
+    [currentIndex, photos],
+  );
 
-  useEffect(() => {
-    if (visible && flatListRef.current) {
-      flatListRef.current.scrollToIndex({
-        index: initialIndex,
-        animated: false,
-      });
-      setCurrentIndex(initialIndex);
-      setCurrentPhoto(photos[initialIndex]);
-    }
-  }, [visible, initialIndex, photos]);
+  // запускаем компонент с выбраной фотографией
+  useEffect(
+    function openViewerAtIndex() {
+      if (visible && flatListRef.current) {
+        flatListRef.current.scrollToIndex({
+          index: initialIndex,
+          animated: false,
+        });
+        setCurrentIndex(initialIndex);
+        setCurrentPhoto(photos[initialIndex]);
+      }
+    },
+    [visible, initialIndex, photos],
+  );
 
   const renderItem = ({item}: {item: PhotoItem}) => (
     <View style={styles.zoomableViewContainer}>
@@ -210,8 +227,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: INFOBAR_HEIGHT,
     backgroundColor: 'green',
-    // width: width,
-    // height: height,
   },
   swipeZoneLeft: {
     position: 'absolute',
@@ -219,7 +234,6 @@ const styles = StyleSheet.create({
     width: 50,
     height: '100%',
     zIndex: 10,
-    // backgroundColor: 'gold',
   },
   swipeZoneRight: {
     position: 'absolute',
@@ -227,47 +241,5 @@ const styles = StyleSheet.create({
     width: 50,
     height: '100%',
     zIndex: 10,
-    // backgroundColor: 'gold',
   },
 });
-// const handleScrollBegin = () => {
-//   console.log('Scroll started');
-//   setIsTransitioning(true);
-// };
-
-// const handleImageLoad = (event: any) => {
-//   const {width: imgWidth, height: imgHeight} = event.nativeEvent;
-//   if (isTransitioning) return;
-//   setImageDimensions({width: imgWidth, height: imgHeight});
-// };
-
-// const handleScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-//   console.log('Scroll ended');
-//   const index = Math.round(event.nativeEvent.contentOffset.x / width);
-//   setIsTransitioning(false);
-//   setCurrentIndex(index);
-// };
-
-// const aspectRatio = imageDimensions.width / imageDimensions.height;
-// const contentWidth = width;
-// const contentHeight = Math.min(width / aspectRatio, height - INFOBAR_HEIGHT);
-
-{
-  /* <FastImage
-          style={{width: width, height: height}}
-          source={{
-            uri: `data:image/jpeg;base64,${item.photo}`,
-          }}
-          resizeMode={FastImage.resizeMode.contain}
-          // onLoad={handleImageLoad}
-        /> */
-}
-
-// const calclZoomableView = () => {
-// const aspectRatio = imageDimensions.width / imageDimensions.height;
-// const maxWidth = width; // ширина устройства
-// const maxHeight = height; // высота без панели
-// const displayWidth = Math.min(maxWidth, maxHeight * aspectRatio);
-// const displayHeight = Math.min(maxHeight, maxWidth / aspectRatio);
-
-// }
