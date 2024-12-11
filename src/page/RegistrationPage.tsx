@@ -6,6 +6,7 @@ import {
   Text,
   Dimensions,
   ImageBackground,
+  Alert,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {usePinCodeRequest} from '../hooks/usePinCodeRequest';
@@ -16,18 +17,13 @@ const {width} = Dimensions.get('window');
 const {height} = Dimensions.get('window');
 
 const RegistrationPage = () => {
-  const {
-    savePinCode,
-    skipPin,
-    dropTable,
-    showTableContent,
-    showTables,
-    showScheme,
-  } = usePinCodeRequest();
+  const {savePinCode, skipPin, deletePinCode} = usePinCodeRequest();
   const route: any = useRoute();
   const navigation: any = useNavigation();
 
+  const [inputMode, setInputMode] = useState(2);
   const [installationPinStage, setInstallationPinStage] = useState(false);
+  const [instruction, setInstruction] = useState('');
   const [pinCode, setPinCode] = useState('');
 
   const handlePinComplete = (pin: string) => {
@@ -43,17 +39,43 @@ const RegistrationPage = () => {
     navigation.replace('MainPage');
   };
 
-  useEffect(() => {
-    const initialPinStage = route.params?.installationPinStage;
-    setInstallationPinStage(initialPinStage);
-  }, [route.params]);
-
-  useEffect(() => {
-    if (pinCode) {
-      savePinCode(pinCode);
-      onLoginSuccess();
+  const handleDeletePinCode = async () => {
+    try {
+      const result = await deletePinCode(pinCode);
+      if (result.success) {
+        onLoginSuccess();
+      }
+    } catch (error) {
+      Alert.alert('Введенный пин-код не совпадает с сохраненным');
     }
-  }, [pinCode]); // зарегали пин код и зашли на главную стр
+  };
+
+  useEffect(
+    function updatePinCodeFlow() {
+      const initialPinStage = route.params?.installationPinStage ?? false;
+      const mode = route.params?.inputMode ?? 2;
+      const instructionValue = route.params?.instruction ?? '';
+
+      setInstallationPinStage(initialPinStage);
+      setInputMode(mode);
+      setInstruction(instructionValue);
+    },
+    [route.params],
+  );
+
+  useEffect(
+    function interactionWithPinCode() {
+      if (pinCode) {
+        if (instruction === 'delete') {
+          handleDeletePinCode();
+        } else {
+          savePinCode(pinCode);
+          onLoginSuccess();
+        }
+      }
+    },
+    [pinCode, instruction],
+  );
 
   return (
     <ImageBackground
@@ -95,54 +117,10 @@ const RegistrationPage = () => {
                 setInstallationPinStage(true);
               }}
             />
-            <Cbutton
-              styleButton={styles.startButton}
-              styleText={styles.textButtonSetPinCode}
-              colorButton={{backgroundColor: COLOR.dark.BUTTON_COLOR}}
-              isShadow={true}
-              isVisible={true}
-              name={'Проверить таблицу'}
-              onPress={() => {
-                showTables();
-              }}
-            />
-            <Cbutton
-              styleButton={styles.startButton}
-              styleText={styles.textButtonSetPinCode}
-              colorButton={{backgroundColor: COLOR.dark.BUTTON_COLOR}}
-              isShadow={true}
-              isVisible={true}
-              name={'Проверить пинкод'}
-              onPress={() => {
-                showTableContent();
-              }}
-            />
-            <Cbutton
-              styleButton={styles.startButton}
-              styleText={styles.textButtonSetPinCode}
-              colorButton={{backgroundColor: COLOR.dark.BUTTON_COLOR}}
-              isShadow={true}
-              isVisible={true}
-              name={'Удалить таблицу'}
-              onPress={() => {
-                dropTable('PinCodeTable');
-              }}
-            />
-            <Cbutton
-              styleButton={styles.startButton}
-              styleText={styles.textButtonSetPinCode}
-              colorButton={{backgroundColor: COLOR.dark.BUTTON_COLOR}}
-              isShadow={true}
-              isVisible={true}
-              name={'Схема'}
-              onPress={() => {
-                showScheme('PinCodeTable');
-              }}
-            />
           </View>
         </View>
       ) : (
-        <PinCode onComplete={handlePinComplete} inputMode={2} />
+        <PinCode onComplete={handlePinComplete} inputMode={inputMode} />
       )}
     </ImageBackground>
   );
@@ -167,7 +145,7 @@ const styles = StyleSheet.create({
   buttonsItem: {
     justifyContent: 'space-between',
     alignItems: 'center',
-    flexDirection: 'column', // row
+    flexDirection: 'row',
     position: 'absolute',
     bottom: 10,
   },

@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   zoomableViewContainer: {
     flex: 1,
     marginTop: INFOBAR_HEIGHT,
-    backgroundColor: 'green',
+    backgroundColor: 'black',
   },
   swipeZoneLeft: {
     position: 'absolute',

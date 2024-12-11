@@ -1,5 +1,5 @@
 import SQLite from 'react-native-sqlite-storage';
-
+import {Alert} from 'react-native';
 const db = SQLite.openDatabase({name: 'database.db', location: 'default'});
 
 db.transaction(tx => {
@@ -81,20 +81,19 @@ const useGetPinCode = () => {
   return setPinCode => {
     db.transaction(tx => {
       tx.executeSql(
-        'SELECT pinCode FROM PinCodeTable', // Извлекаем пин-код
+        'SELECT pinCode FROM PinCodeTable',
         [],
         (tx, results) => {
           if (results.rows.length > 0) {
-            // Если есть результаты, берем первый пин-код
             const pinCode = results.rows.item(0).pinCode;
-            setPinCode(pinCode); // Сохраняем пин-код
+            setPinCode(pinCode);
           } else {
-            setPinCode(''); // Если данных нет, ставим пустую строку
+            setPinCode('');
           }
         },
         error => {
           console.log('Error fetching pin code:', error);
-          setPinCode(''); // В случае ошибки устанавливаем пустую строку
+          setPinCode('');
         },
       );
     });
@@ -104,51 +103,85 @@ const useGetPinCode = () => {
 const useCheckActivePinCode = () => {
   return callback => {
     db.transaction(tx => {
-      // Первый запрос: проверка активированного пин-кода
+      // проверка активированного пин-кода
       tx.executeSql(
         'SELECT * FROM PinCodeTable WHERE isActive = 1',
         [],
         (tx, results) => {
           const isActive = results.rows.length > 0;
 
-          // Второй запрос: проверка пропущенного пин-кода
+          // проверка пропущенного пин-кода
           tx.executeSql(
             'SELECT * FROM PinCodeTable WHERE isSkip = 1',
             [],
             (tx, results) => {
               const isSkip = results.rows.length > 0;
 
-              // Возвращаем результат
               callback(isActive, isSkip);
             },
             error => {
               console.error('Ошибка при проверке isSkip:', error);
-              callback(isActive, false); // Возвращаем результат только для isActive
+              callback(isActive, false);
             },
           );
         },
         error => {
           console.error('Ошибка при проверке isActive:', error);
-          callback(false, false); // Ошибка, оба значения false
+          callback(false, false);
         },
       );
     });
   };
 };
 
-const useClearTable = () => {
-  return tableName => {
-    db.transaction(tx => {
-      tx.executeSql(
-        `DROP TABLE IF EXISTS ${tableName}`,
-        [],
-        (tx, result) => {
-          console.log('Table deleted successfully');
-        },
-        error => {
-          console.log('Error deleting table:', error);
-        },
-      );
+const useDeletePinCode = () => {
+  return inputPinCode => {
+    return new Promise((resolve, reject) => {
+      db.transaction(tx => {
+        tx.executeSql(
+          'SELECT * FROM PinCodeTable WHERE isActive = 1',
+          [],
+          (tx, results) => {
+            if (results.rows.length > 0) {
+              const storedPinCode = results.rows.item(0).pinCode;
+
+              if (storedPinCode === inputPinCode) {
+                tx.executeSql(
+                  'DELETE FROM PinCodeTable WHERE isActive = 1',
+                  [],
+                  (tx, deleteResults) => {
+                    console.log('Пин-код удален успешно');
+                    resolve({success: true, message: 'Пин-код удален успешно'});
+                  },
+                  error => {
+                    console.error('Ошибка при удалении пин-кода:', error);
+                    reject({
+                      success: false,
+                      message: 'Ошибка при удалении пин-кода',
+                    });
+                  },
+                );
+              } else {
+                console.log('Введенный пин-код не совпадает с сохраненным');
+                reject({
+                  success: false,
+                  message: 'Введенный пин-код не совпадает с сохраненным',
+                });
+              }
+            } else {
+              console.log('Активный пин-код не найден в таблице');
+              reject({
+                success: false,
+                message: 'Активный пин-код не найден в таблице',
+              });
+            }
+          },
+          error => {
+            console.error('Ошибка при чтении из таблицы:', error);
+            reject({success: false, message: 'Ошибка при чтении из таблицы'});
+          },
+        );
+      });
     });
   };
 };
@@ -224,7 +257,7 @@ export function usePinCodeRequest() {
   const skipPin = useAddSkipPinCodeVallue();
   const getPinCodefromTable = useGetPinCode();
   const checkActivePinCode = useCheckActivePinCode();
-  const dropTable = useClearTable();
+  const deletePinCode = useDeletePinCode();
   const showTableContent = useShowTableContent();
   const showTables = useShowTablesBd();
   const showScheme = useShowShemeTable();
@@ -234,7 +267,7 @@ export function usePinCodeRequest() {
     skipPin,
     getPinCodefromTable,
     checkActivePinCode,
-    dropTable,
+    deletePinCode,
     showTables,
     showTableContent,
     showScheme,

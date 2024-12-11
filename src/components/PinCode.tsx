@@ -58,7 +58,6 @@ const PinCode: React.FC<PinInputProps> = ({onComplete, inputMode, onReset}) => {
       }
     } else {
       if (confirmPin === initialPin) {
-        Alert.alert('Переход в галлерею');
         if (onComplete) {
           onComplete(initialPin);
         }

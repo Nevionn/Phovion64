@@ -32,11 +32,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 }) => {
   const {deleteAllAlbums} = useAlbumsRequest();
   const {deleteAllPhotos} = usePhotoRequest();
-
-  const navigation: any = useNavigation();
-
   const {checkActivePinCode} = usePinCodeRequest();
   const {getSettings} = useSettingsRequest();
+
+  const navigation: any = useNavigation();
 
   const [safetyVisible, setSafetyVisible] = useState(true);
   const [settings, setSettings] = useState<Settings>({
@@ -45,6 +44,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   });
 
   const [isVisibleAcceptModal, setIsVisibleAcceptModal] = useState(false);
+
+  const handleOpenAcceptModal = () => setIsVisibleAcceptModal(true);
+  const handleCloseAcceptModal = () => setIsVisibleAcceptModal(false);
 
   const toggleSwitch = (key: keyof Settings) => {
     setSettings(prevSettings => ({
@@ -63,21 +65,36 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     getSettings(setSettings);
   };
 
-  const handleOpenAcceptModal = () => {
-    setIsVisibleAcceptModal(true);
-  };
-
-  const handleCloseAcceptModal = () => {
-    setIsVisibleAcceptModal(false);
-  };
-
   const setPinCode = () => {
     try {
       handleCloseSettingsModal();
-      navigation.navigate('RegistrationPage', {installationPinStage: true});
+      navigation.navigate('RegistrationPage', {
+        installationPinStage: true,
+        inputMode: 2,
+      });
     } catch (error) {
-      console.error('Navigation error:', error);
+      return;
     }
+  };
+
+  const deletePinCode = () => {
+    try {
+      handleCloseSettingsModal();
+      navigation.navigate('RegistrationPage', {
+        installationPinStage: true,
+        inputMode: 1,
+        instruction: 'delete',
+      });
+    } catch (error) {
+      return;
+    }
+  };
+
+  const deleteAllAlbumsExpand = () => {
+    deleteAllAlbums(),
+      deleteAllPhotos(),
+      handleCloseAcceptModal(),
+      eventEmitter.emit('albumsUpdated');
   };
 
   useEffect(() => {
@@ -91,13 +108,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     });
     getSettings(setSettings);
   }, []);
-
-  const deleteAllAlbumsExpand = () => {
-    deleteAllAlbums(),
-      deleteAllPhotos(),
-      handleCloseAcceptModal(),
-      eventEmitter.emit('albumsUpdated');
-  };
 
   return (
     <Modal
@@ -148,10 +158,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             </Picker>
           </View>
           <Divider />
-          {safetyVisible && (
-            <View style={styles.securItem}>
-              <Text style={styles.smallText}>Безопасность:</Text>
-              <View style={styles.topSpacer} />
+          <View style={styles.securItem}>
+            <Text style={styles.smallText}>Безопасность:</Text>
+            <View style={styles.topSpacer} />
+            {safetyVisible ? (
               <Button
                 textColor={COLOR.dark.BUTTON_TEXT}
                 icon={() => <SvgPassword />}
@@ -159,8 +169,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 onPress={() => setPinCode()}>
                 Установить ПИН-код
               </Button>
-            </View>
-          )}
+            ) : (
+              <Button
+                textColor={COLOR.dark.BUTTON_TEXT}
+                icon={() => <SvgPassword />}
+                mode="text"
+                onPress={() => deletePinCode()}>
+                Удалить ПИН-код
+              </Button>
+            )}
+          </View>
           <Divider />
           <View style={styles.deleteAlbumsItem}>
             <Text style={styles.smallText}>Очистка:</Text>
