@@ -1,4 +1,5 @@
 export const COLOR = {
+  NAME_APP: '#9d65c9',
   dark: {
     MAIN_COLOR: '#1c1549',
 
