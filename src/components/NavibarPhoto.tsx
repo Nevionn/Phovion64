@@ -21,6 +21,7 @@ import AcceptMoveModal from './modals/AcceptMoveModal';
 import RenameAlbumModal from './modals/RenameAlbumModal';
 import {COLOR} from '../../assets/colorTheme';
 import {pickImage} from '../../assets/camera';
+import {capturePhoto} from '../../assets/camera';
 
 const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({titleAlbum, idAlbum}) => {
   const {deleteAlbum} = useAlbumsRequest();
@@ -99,6 +100,13 @@ const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({titleAlbum, idAlbum}) => {
                 toggleMiniModal();
               }}>
               <Text style={styles.modalItem}>Добавить фото</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                capturePhoto(idAlbum, addPhoto);
+                toggleMiniModal();
+              }}>
+              <Text style={styles.modalItem}>Сделать фото</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
