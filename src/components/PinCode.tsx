@@ -58,7 +58,6 @@ const PinCode: React.FC<PinInputProps> = ({onComplete, inputMode, onReset}) => {
       }
     } else {
       if (confirmPin === initialPin) {
-        Alert.alert('Переход в галлерею');
         if (onComplete) {
           onComplete(initialPin);
         }
@@ -150,7 +149,7 @@ const styles = StyleSheet.create({
   button: {
     width: 60,
     height: 60,
-    backgroundColor: COLOR.BUTTON_PIN_COLOR,
+    backgroundColor: COLOR.dark.BUTTON_PIN_COLOR,
     margin: 5,
     marginTop: 2,
     borderRadius: 10,
@@ -163,7 +162,7 @@ const styles = StyleSheet.create({
     marginTop: 40,
     padding: 10,
     borderRadius: 10,
-    backgroundColor: COLOR.BUTTON_COLOR,
+    backgroundColor: COLOR.dark.BUTTON_COLOR,
   },
   text: {
     fontSize: 24,

@@ -1,77 +1,69 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   StatusBar,
   StyleSheet,
   Text,
   View,
-  ScrollView,
-  RefreshControl,
-  ImageBackground,
-  Dimensions,
   Image,
   FlatList,
+  TouchableOpacity,
 } from 'react-native';
 import {COLOR} from '../../assets/colorTheme';
 import NaviBar from '../components/Navibar';
-import Cbutton from '../components/Cbutton';
-import {usePinCodeRequest} from '../hooks/usePinCodeRequest';
+import {useNavigation} from '@react-navigation/native';
 import {useAlbumsRequest} from '../hooks/useAlbumsRequest';
 import {useSettingsRequest} from '../hooks/useSettingsRequest';
-import ImageViewer from '../components/ImageViewer';
+import {useAppSettings} from '../../assets/settingsContext';
 import NewAlbumModal from '../components/modals/NewAlbumModal';
 import SettingsModal from '../components/modals/SettingsModal';
-import {Image as SvgImage} from 'react-native-svg';
-import {Button} from 'react-native-paper';
-const {width} = Dimensions.get('window');
-const {height} = Dimensions.get('window');
+import eventEmitter from '../../assets/eventEmitter';
 
 interface Album {
   id: string;
   title: string;
   countPhoto: number;
   created_at: string;
+  coverPhoto: string;
 }
 
 const MainPage: React.FC = () => {
-  const {showTableContent, dropTable} = usePinCodeRequest();
-  const {addAlbum, getAllAlbums, showAlbums, showShemeAlbumsTable} =
-    useAlbumsRequest();
-  const {acceptSettings, getSettings, showSettings} = useSettingsRequest();
+  const navigation: any = useNavigation();
 
-  const [isModalVisible, setModalVisible] = useState(false);
+  const {addAlbum, getAllAlbums} = useAlbumsRequest();
+  const {acceptSettings, getSettings} = useSettingsRequest();
+  const {appSettings, saveAppSettings} = useAppSettings();
+
+  const [isModalAddAlbumVisible, setModalAddAlbumVisible] = useState(false);
   const [isSettingsModalVisible, setIsSettingsModalVisible] = useState(false);
-  const [isDarkTheme, setIsDarkTheme] = useState(true);
 
-  const [appSettings, setAppSettings] = useState({
-    darkMode: false,
-    sortOrder: 'newest' as 'newest' | 'oldest',
-  });
   const [albums, setAlbums] = useState<Album[]>([]);
 
   useEffect(() => {
-    getSettings(setAppSettings);
-    setIsDarkTheme(appSettings.darkMode);
+    getSettings(saveAppSettings);
   }, [appSettings.darkMode]);
 
   useEffect(() => {
-    getAllAlbums((fetchedAlbums: Album[]) => {
-      const sortedAlbums =
-        appSettings.sortOrder === 'oldest'
-          ? [...fetchedAlbums].reverse()
-          : fetchedAlbums;
-      setAlbums(sortedAlbums);
-    });
+    const updateAlbums = () => {
+      getAllAlbums(setAlbums, appSettings.sortOrder);
+    };
+
+    updateAlbums();
+
+    eventEmitter.on('albumsUpdated', updateAlbums);
+    return () => {
+      eventEmitter.off('albumsUpdated', updateAlbums);
+    };
   }, [appSettings.sortOrder]);
 
   const openSettings = () => setIsSettingsModalVisible(true);
 
   const saveSettings = (newSettings: typeof appSettings) => {
-    setAppSettings(newSettings);
+    saveAppSettings(newSettings);
     console.log('Настройки сохранены:', newSettings);
-    acceptSettings(newSettings); // Передаём настройки в базу данных
+    acceptSettings(newSettings);
   };
 
-  const openCreateAlbumModal = () => setModalVisible(true);
+  const openCreateAlbumModal = () => setModalAddAlbumVisible(true);
 
   const handleAddAlbum = (newAlbum: {title: string}) => {
     const currentDate = new Date();
@@ -81,10 +73,14 @@ const MainPage: React.FC = () => {
       countPhoto: 0,
       created_at: currentDate.toLocaleString(),
     };
-    addAlbum(albumToInsert), getAllAlbums(setAlbums);
+    addAlbum(albumToInsert), getAllAlbums(setAlbums, appSettings.sortOrder);
   };
 
-  const styles = getStyles(isDarkTheme);
+  const openAlbum = (album: Album) => {
+    navigation.navigate('PhotoPage', {album});
+  };
+
+  const styles = getStyles(appSettings.darkMode);
 
   return (
     <View style={styles.root}>
@@ -97,14 +93,23 @@ const MainPage: React.FC = () => {
       <FlatList
         data={albums}
         numColumns={2}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.id.toString()}
         renderItem={({item}) => (
-          <View style={styles.placeHolder}>
+          <TouchableOpacity
+            style={styles.placeHolder}
+            onPress={() => openAlbum(item)}>
             <View style={styles.imagePlace}>
-              <Image
-                source={require('../../assets/images/not_img_default.png')}
-                style={styles.image}
-              />
+              {item.coverPhoto ? (
+                <Image
+                  source={{uri: `data:image/jpeg;base64,${item.coverPhoto}`}}
+                  style={styles.image}
+                />
+              ) : (
+                <Image
+                  source={require('../../assets/images/not_img_default.png')}
+                  style={styles.image}
+                />
+              )}
             </View>
             <View style={styles.textImageHolder}>
               <Text style={styles.textNameAlbum}>
@@ -117,12 +122,12 @@ const MainPage: React.FC = () => {
                   styles.textCountPhoto
                 }>{`фотографий ${item.countPhoto}`}</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         )}
       />
       <NewAlbumModal
-        visible={isModalVisible}
-        onClose={() => setModalVisible(false)}
+        visible={isModalAddAlbumVisible}
+        onClose={() => setModalAddAlbumVisible(false)}
         onSubmit={handleAddAlbum}
       />
       <SettingsModal
@@ -130,25 +135,6 @@ const MainPage: React.FC = () => {
         onClose={() => setIsSettingsModalVisible(false)}
         onSave={saveSettings}
       />
-      {/* <View>
-        <ImageViewer />
-      </View> */}
-      <View style={styles.testBlock}>
-        <Button
-          mode="contained"
-          onPress={() => {
-            showSettings(); // showShemeAlbumsTable('AlbumsTable')
-          }}>
-          настройки
-        </Button>
-        <Button
-          mode="contained"
-          onPress={() => {
-            dropTable('AlbumsTable');
-          }}>
-          Дропнуть таблицу
-        </Button>
-      </View>
       <NaviBar
         openModalAlbum={openCreateAlbumModal}
         openModalSettings={openSettings}
@@ -158,25 +144,20 @@ const MainPage: React.FC = () => {
 };
 export default MainPage;
 
-const getStyles = (isDarkTheme: boolean) => {
+const getStyles = (darkMode: boolean) => {
   return StyleSheet.create({
     root: {
       flexGrow: 1,
       justifyContent: 'center',
-      backgroundColor: isDarkTheme
+      backgroundColor: darkMode
         ? COLOR.dark.MAIN_COLOR
         : COLOR.light.MAIN_COLOR,
     },
     topSpacer: {
       height: '15%',
     },
-    container: {
-      paddingHorizontal: 10,
-      paddingVertical: 10,
-    },
     placeHolder: {
       flex: 1,
-      backgroundColor: 'transparent',
       margin: 10,
       height: 220,
     },
@@ -203,81 +184,11 @@ const getStyles = (isDarkTheme: boolean) => {
     },
     textNameAlbum: {
       fontSize: 14,
-      color: isDarkTheme ? 'white' : 'black',
+      color: darkMode ? COLOR.dark.TEXT_BRIGHT : COLOR.light.TEXT_BRIGHT,
     },
     textCountPhoto: {
       fontSize: 12,
-      color: isDarkTheme ? '#ACACAC' : 'grey',
-    },
-    testBlock: {
-      justifyContent: 'center',
-      flexDirection: 'row',
-      marginBottom: 200,
+      color: darkMode ? COLOR.dark.TEXT_DIM : COLOR.light.TEXT_DIM,
     },
   });
 };
-
-// const styles = StyleSheet.create({
-//   rootDark: {
-//     flexGrow: 1,
-//     justifyContent: 'center',
-//     backgroundColor: COLOR.dark.MAIN_COLOR,
-//   },
-//   rootLight: {
-//     flexGrow: 1,
-//     justifyContent: 'center',
-//     backgroundColor: COLOR.light.MAIN_COLOR,
-//   },
-//   topSpacer: {
-//     height: '15%',
-//   },
-//   container: {
-//     paddingHorizontal: 10,
-//     paddingVertical: 10,
-//   },
-//   placeHolder: {
-//     flex: 1,
-//     backgroundColor: 'transparent',
-//     margin: 10,
-//     height: 220,
-//   },
-//   imagePlace: {
-//     flex: 1,
-//     width: '100%',
-//     borderWidth: 0.5,
-//     borderColor: 'white',
-//     borderRadius: 10,
-//     aspectRatio: 1,
-//   },
-//   image: {
-//     height: '100%',
-//     width: '100%',
-//     borderRadius: 10,
-//   },
-//   textImageHolder: {
-//     justifyContent: 'flex-start',
-//     alignItems: 'flex-start',
-//     paddingLeft: 2,
-//     height: 40,
-//     width: '100%',
-//     zIndex: 10,
-//   },
-//   textNameAlbum: {
-//     fontSize: 14,
-//     color: 'white',
-//   },
-//   textCountPhoto: {
-//     fontSize: 12,
-//     color: '#ACACAC',
-//   },
-//   text: {
-//     color: 'white',
-//     alignItems: 'center',
-//     fontSize: 18,
-//   },
-//   testBlock: {
-//     justifyContent: 'center',
-//     flexDirection: 'row',
-//     marginBottom: 200,
-//   },
-// });

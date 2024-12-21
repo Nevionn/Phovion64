@@ -1,41 +1,61 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
+import {ActivityIndicator, View, StyleSheet} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import MainPageScreen from '../screens/MainPageScreen';
 import RegistrationPageScreen from '../screens/RegistrationPageScreen';
 import LoginPageScreen from '../screens/LoginPageScreen';
-import TestScreen from '../screens/TestScreen';
+import PhotoPageScreen from '../screens/PhotoPageScreen';
+import {usePinCodeRequest} from '../../hooks/usePinCodeRequest';
 
 const Stack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator();
-
-const MainScreen = () => (
-  <Tab.Navigator
-    tabBar={() => null}
-    screenOptions={{
-      headerShown: false,
-    }}>
-    <Tab.Screen name="LoginPage" component={RegistrationPageScreen} />
-    <Tab.Screen name="MainPage" component={MainPageScreen} />
-  </Tab.Navigator>
-);
 
 const AppStack = () => {
+  const {checkActivePinCode} = usePinCodeRequest();
+  const [initialRoute, setInitialRoute] = useState<string | null>(null);
+
+  useEffect(() => {
+    checkActivePinCode((isActive: boolean, isSkip: boolean) => {
+      if (isActive) {
+        setInitialRoute('LoginPage');
+      } else if (isSkip) {
+        setInitialRoute('MainPage');
+      } else {
+        setInitialRoute('RegistrationPage');
+      }
+    });
+  }, []);
+
+  if (!initialRoute) {
+    return (
+      <View style={style.loadItem}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
   return (
     <Stack.Navigator
+      initialRouteName={initialRoute} // Устанавливаем маршрут после проверки
       screenOptions={{
         headerShown: false,
       }}>
-      {/* <Stack.Screen name="MainScreen" component={MainScreen} /> */}
-      {/* <Stack.Screen name="TestPage" component={TestScreen} /> */}
       <Stack.Screen
         name="RegistrationPage"
         component={RegistrationPageScreen}
       />
       <Stack.Screen name="LoginPage" component={LoginPageScreen} />
       <Stack.Screen name="MainPage" component={MainPageScreen} />
+      <Stack.Screen name="PhotoPage" component={PhotoPageScreen} />
     </Stack.Navigator>
   );
 };
+
+const style = StyleSheet.create({
+  loadItem: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
 
 export default AppStack;

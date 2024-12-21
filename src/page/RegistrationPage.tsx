@@ -8,30 +8,31 @@ import {
   ImageBackground,
   Alert,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import {usePinCodeRequest} from '../hooks/usePinCodeRequest';
 import {COLOR} from '../../assets/colorTheme';
+import {Button} from 'react-native-paper';
+import PinCode from '../components/PinCode';
 const {width} = Dimensions.get('window');
 const {height} = Dimensions.get('window');
-import Cbutton from '../components/Cbutton';
-import PinCode from '../components/PinCode';
-import {usePinCodeRequest} from '../hooks/usePinCodeRequest';
 
 const RegistrationPage = () => {
-  const {
-    savePinCode,
-    skipPin,
-    checkActivePinCode,
-    dropTable,
-    showTableContent,
-    showTables,
-    showScheme,
-  } = usePinCodeRequest();
+  const {savePinCode, skipPin, deletePinCode} = usePinCodeRequest();
+  const route: any = useRoute();
   const navigation: any = useNavigation();
+
+  const [inputMode, setInputMode] = useState(2);
   const [installationPinStage, setInstallationPinStage] = useState(false);
+  const [instruction, setInstruction] = useState<'delete' | ''>('');
   const [pinCode, setPinCode] = useState('');
+  const [shouldResetPin, setShouldResetPin] = useState(false);
 
   const handlePinComplete = (pin: string) => {
     setPinCode(pin);
+  };
+
+  const handleResetPin = () => {
+    setShouldResetPin(true);
   };
 
   const skipInstallPinCode = () => {
@@ -43,27 +44,44 @@ const RegistrationPage = () => {
     navigation.replace('MainPage');
   };
 
-  const redirectToLoginPage = () => {
-    navigation.replace('LoginPage');
-  };
-
-  useEffect(() => {
-    checkActivePinCode((isActive: boolean, isSkip: boolean) => {
-      if (isActive) {
-        redirectToLoginPage();
-      }
-      if (isSkip) {
+  const handleDeletePinCode = async () => {
+    try {
+      const result = await deletePinCode(pinCode);
+      if (result.success) {
         onLoginSuccess();
       }
-    });
-  }, []);
-
-  useEffect(() => {
-    if (pinCode) {
-      savePinCode(pinCode);
-      onLoginSuccess();
+    } catch (error) {
+      Alert.alert('Введенный пин-код не совпадает с сохраненным');
+      handleResetPin();
     }
-  }, [pinCode]); // зарегали пин код и зашли на главную стр
+  };
+
+  useEffect(
+    function updatePinCodeFlow() {
+      const initialPinStage = route.params?.installationPinStage ?? false;
+      const mode = route.params?.inputMode ?? 2;
+      const instructionValue = route.params?.instruction ?? '';
+
+      setInstallationPinStage(initialPinStage);
+      setInputMode(mode);
+      setInstruction(instructionValue);
+    },
+    [route.params],
+  );
+
+  useEffect(
+    function interactionWithPinCode() {
+      if (pinCode) {
+        if (instruction === 'delete') {
+          handleDeletePinCode();
+        } else {
+          savePinCode(pinCode);
+          onLoginSuccess();
+        }
+      }
+    },
+    [pinCode, instruction],
+  );
 
   return (
     <ImageBackground
@@ -76,6 +94,7 @@ const RegistrationPage = () => {
       />
       {!installationPinStage ? (
         <View style={styles.greetingsItem}>
+          <Text style={styles.nameApp}>HANZA64</Text>
           <Text style={styles.text}>
             Добро пожаловать в защищенную галерею{'\n'}
             Для безопасности <Text style={styles.highlight}>
@@ -83,76 +102,36 @@ const RegistrationPage = () => {
             </Text>{' '}
             установить пин код
           </Text>
+
           <View style={styles.buttonsItem}>
-            <Cbutton
-              styleButton={styles.startButton}
-              colorButton={{backgroundColor: COLOR.dark.BUTTON_COLOR_INACTIVE}}
-              isShadow={true}
-              isVisible={true}
-              name={'Пропустить'}
-              onPress={() => {
-                skipInstallPinCode();
-              }}
-            />
-            <Cbutton
-              styleButton={styles.startButton}
-              styleText={styles.textButtonSetPinCode}
-              colorButton={{backgroundColor: COLOR.dark.BUTTON_COLOR}}
-              isShadow={true}
-              isVisible={true}
-              name={'Установить пин-код'}
+            <Button
+              style={styles.startButton}
+              labelStyle={styles.textButton}
+              mode="contained"
+              buttonColor={COLOR.dark.BUTTON_COLOR}
               onPress={() => {
                 setInstallationPinStage(true);
-              }}
-            />
-            <Cbutton
-              styleButton={styles.startButton}
-              styleText={styles.textButtonSetPinCode}
-              colorButton={{backgroundColor: COLOR.dark.BUTTON_COLOR}}
-              isShadow={true}
-              isVisible={true}
-              name={'Проверить таблицу'}
+              }}>
+              Установить пин-код
+            </Button>
+            <Button
+              style={styles.startButton}
+              labelStyle={styles.textButton}
+              mode="contained"
+              buttonColor={COLOR.dark.BUTTON_COLOR_INACTIVE}
               onPress={() => {
-                showTables();
-              }}
-            />
-            <Cbutton
-              styleButton={styles.startButton}
-              styleText={styles.textButtonSetPinCode}
-              colorButton={{backgroundColor: COLOR.dark.BUTTON_COLOR}}
-              isShadow={true}
-              isVisible={true}
-              name={'Проверить пинкод'}
-              onPress={() => {
-                showTableContent();
-              }}
-            />
-            <Cbutton
-              styleButton={styles.startButton}
-              styleText={styles.textButtonSetPinCode}
-              colorButton={{backgroundColor: COLOR.dark.BUTTON_COLOR}}
-              isShadow={true}
-              isVisible={true}
-              name={'Удалить таблицу'}
-              onPress={() => {
-                dropTable('PinCodeTable');
-              }}
-            />
-            <Cbutton
-              styleButton={styles.startButton}
-              styleText={styles.textButtonSetPinCode}
-              colorButton={{backgroundColor: COLOR.dark.BUTTON_COLOR}}
-              isShadow={true}
-              isVisible={true}
-              name={'Схема'}
-              onPress={() => {
-                showScheme('PinCodeTable');
-              }}
-            />
+                skipInstallPinCode();
+              }}>
+              Пропустить
+            </Button>
           </View>
         </View>
       ) : (
-        <PinCode onComplete={handlePinComplete} inputMode={2} />
+        <PinCode
+          onComplete={handlePinComplete}
+          inputMode={inputMode}
+          onReset={shouldResetPin ? () => setShouldResetPin(false) : undefined}
+        />
       )}
     </ImageBackground>
   );
@@ -168,35 +147,61 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.dark.MAIN_COLOR,
   },
   greetingsItem: {
-    justifyContent: 'center',
+    justifyContent: 'space-around',
     alignItems: 'center',
-    // backgroundColor: COLOR.SECONDARY_COLOR,
+    flexDirection: 'column',
+    backgroundColor: 'transparent',
     height: height * 0.75,
     width: width * 0.75,
   },
   buttonsItem: {
     justifyContent: 'space-between',
     alignItems: 'center',
-    flexDirection: 'column', // row
-    position: 'absolute',
-    bottom: 10,
+    flexDirection: 'column',
   },
   startButton: {
-    height: 38,
-    width: 110,
-    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 14,
+    margin: 2,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    borderWidth: 2,
+    borderColor: 'black',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
+  nameApp: {
+    color: COLOR.NAME_APP,
+    fontSize: 44,
+    fontFamily: 'Impact Regular',
+    textTransform: 'uppercase',
+    textShadowColor: 'black',
+    textShadowOffset: {width: 10, height: 10},
+    textShadowRadius: 10,
   },
   text: {
     color: 'white',
-    alignItems: 'center',
-    fontSize: 20,
+    fontSize: 24,
+    fontFamily: 'Impact Regular',
+    textTransform: 'uppercase',
+    textShadowColor: 'black',
+    textShadowOffset: {width: 10, height: 10},
+    textShadowRadius: 10,
+  },
+  textButton: {
+    color: 'white',
+    fontSize: 18,
+    fontFamily: 'Impact Regular',
+    textTransform: 'uppercase',
+    textShadowColor: 'black',
+    textShadowOffset: {width: 0, height: 2},
+    textShadowRadius: 1,
   },
   highlight: {
     fontSize: 20,
-    color: 'aqua',
-    fontWeight: 'bold',
-  },
-  textButtonSetPinCode: {
     color: 'aqua',
     fontWeight: 'bold',
   },
