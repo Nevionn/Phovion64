@@ -1,5 +1,6 @@
 export const COLOR = {
   NAME_APP: '#9d65c9',
+  SVG_WHITE: 'white',
   dark: {
     MAIN_COLOR: '#1c1549',
 

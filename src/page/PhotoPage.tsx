@@ -7,6 +7,7 @@ import {
   Dimensions,
   FlatList,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import {usePhotoRequest} from '../hooks/usePhotoRequest';
 import {useAppSettings} from '../../assets/settingsContext';
@@ -15,7 +16,6 @@ import eventEmitter from '../../assets/eventEmitter';
 import {useRoute} from '@react-navigation/native';
 import NavibarPhoto from '../components/NavibarPhoto';
 import ImageViewer from '../components/ImageViewer';
-import FastImage from 'react-native-fast-image';
 
 interface PhotoObjectArray {
   id: number;
@@ -81,7 +81,7 @@ const PhotoPage = () => {
             <TouchableOpacity
               style={styles.placeHolder}
               onPress={() => openImageViewer(index, item.id)}>
-              <FastImage
+              <Image
                 source={{uri: `data:image/jpeg;base64,${item.photo}`}}
                 style={styles.image}
               />
