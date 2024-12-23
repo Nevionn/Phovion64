@@ -49,6 +49,10 @@ const PhotoPage = () => {
     setIsVisibleImageViewer(false);
   };
 
+  const reversePhotosSort = () => {
+    setPhotos(prevPhotos => [...prevPhotos].reverse());
+  };
+
   useEffect(() => {
     const updatePhotos = () => {
       getPhoto(dataAlbum.album.id, setPhotos);
@@ -96,6 +100,7 @@ const PhotoPage = () => {
       <NavibarPhoto
         titleAlbum={dataAlbum.album.title}
         idAlbum={dataAlbum.album.id}
+        sortPhotos={reversePhotosSort}
       />
       <ImageViewer
         visible={isVisibleImageViewer}
