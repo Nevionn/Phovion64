@@ -15,6 +15,7 @@ import eventEmitter from '../../assets/eventEmitter';
 import SvgLeftArrow from './icons/SvgLeftArrow';
 import SvgDotsVertical from './icons/SvgDotsVertical';
 import {IconButton} from 'react-native-paper';
+import SvgBidirectionalArrows from './icons/SvgBidirectionalArrows';
 import {ModalText} from '../../assets/textForModal';
 import NaviBarPhotoProps from '../types/NaviBarPhotoProps';
 import AcceptMoveModal from './modals/AcceptMoveModal';
@@ -23,7 +24,11 @@ import {COLOR} from '../../assets/colorTheme';
 import {pickImage} from '../../assets/camera';
 import {capturePhoto} from '../../assets/camera';
 
-const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({titleAlbum, idAlbum}) => {
+const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({
+  titleAlbum,
+  idAlbum,
+  sortPhotos,
+}) => {
   const {deleteAlbum} = useAlbumsRequest();
   const {appSettings} = useAppSettings();
   const {addPhoto, deleteAllPhotosCurrentAlbum} = usePhotoRequest();
@@ -71,13 +76,26 @@ const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({titleAlbum, idAlbum}) => {
             size={30}
             onPress={() => navigation.goBack()}
           />
-          <IconButton
-            icon={() => (
-              <SvgDotsVertical color={setSvgIconColor(appSettings.darkMode)} />
-            )}
-            size={30}
-            onPress={toggleMiniModal}
-          />
+          <View style={styles.rightItemContent}>
+            <IconButton
+              icon={() => (
+                <SvgBidirectionalArrows
+                  color={setSvgIconColor(appSettings.darkMode)}
+                />
+              )}
+              size={30}
+              onPress={() => sortPhotos()}
+            />
+            <IconButton
+              icon={() => (
+                <SvgDotsVertical
+                  color={setSvgIconColor(appSettings.darkMode)}
+                />
+              )}
+              size={30}
+              onPress={toggleMiniModal}
+            />
+          </View>
         </View>
         <View style={styles.titleAlbumItem}>
           <Text style={styles.title}>{title}</Text>
@@ -158,10 +176,13 @@ const getStyles = (darkMode: boolean) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       flexDirection: 'row',
-      paddingHorizontal: 10,
       width: '100%',
       height: '60%',
-      backgroundColor: 'transparent',
+    },
+    rightItemContent: {
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      flexDirection: 'row',
     },
     titleAlbumItem: {
       justifyContent: 'flex-start',
@@ -169,7 +190,6 @@ const getStyles = (darkMode: boolean) => {
       flexDirection: 'row',
       height: '40%',
       width: '100%',
-      backgroundColor: 'transparent',
     },
     title: {
       color: darkMode ? COLOR.dark.TEXT_BRIGHT : COLOR.light.TEXT_BRIGHT,
