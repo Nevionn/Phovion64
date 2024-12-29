@@ -1,5 +1,12 @@
 import React from 'react';
-import {View, Text, StyleSheet, Modal, Dimensions} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  Dimensions,
+  StatusBar,
+} from 'react-native';
 import {
   useAppSettings,
   setButtonColor,
@@ -34,6 +41,7 @@ const AcceptMoveModal: React.FC<AcceptMoveModalProps> = ({
         animationType="fade"
         transparent={true}
         onRequestClose={onCloseAcceptModal}>
+        <StatusBar translucent backgroundColor="black" />
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
             <View style={styles.textItem}>

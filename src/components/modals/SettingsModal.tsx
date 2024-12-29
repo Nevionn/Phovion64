@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, Switch, StyleSheet, Modal} from 'react-native';
+import {View, Text, Switch, StyleSheet, Modal, StatusBar} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import {Button, Divider} from 'react-native-paper';
 import {COLOR} from '../../../assets/colorTheme';
@@ -126,10 +126,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       animationType="fade"
       transparent={true}
       onRequestClose={handleCloseSettingsModal}>
+      <StatusBar translucent backgroundColor="black" />
       <View style={styles.modalBackground}>
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Настройки</Text>
-
           <View style={styles.setting}>
             <Text style={styles.smallText}>Темная тема</Text>
             <Switch

@@ -1,5 +1,12 @@
 import React, {useState} from 'react';
-import {View, Text, TextInput, Modal, StyleSheet} from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Modal,
+  StyleSheet,
+  StatusBar,
+} from 'react-native';
 import {
   useAppSettings,
   setButtonColor,
@@ -44,6 +51,7 @@ const NewAlbumModal: React.FC<NewAlbumModalProps> = ({
       animationType="fade"
       transparent={true}
       onRequestClose={handleCloseModal}>
+      <StatusBar translucent backgroundColor="black" />
       <View style={styles.modalBackground}>
         <View style={styles.modalContainer}>
           <Text style={styles.title}>Создать новый альбом</Text>
