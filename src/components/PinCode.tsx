@@ -85,7 +85,7 @@ const PinCode: React.FC<PinInputProps> = ({onComplete, inputMode, onReset}) => {
       <View
         style={styles.pinCodeItem}
         onLayout={event => setPinCodeWidth(event.nativeEvent.layout.width)}>
-        <View style={{justifyContent: 'center', alignItems: 'center'}}>
+        <View style={styles.moveTextPinCode}>
           <Text style={styles.text}>
             {step === 1 ? 'Введите PIN-код' : 'Повторите PIN-код'}
           </Text>
@@ -180,6 +180,10 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     backgroundColor: COLOR.dark.BUTTON_COLOR,
+  },
+  moveTextPinCode: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   text: {
     fontSize: 24,
