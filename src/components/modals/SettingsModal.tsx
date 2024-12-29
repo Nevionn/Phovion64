@@ -76,7 +76,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       setBackupSettings(appSettings);
       setSettings(appSettings);
     }
-    console.log('test');
   }, [visible, appSettings]);
 
   const handleSave = () => {
