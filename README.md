@@ -9,15 +9,16 @@
 <div align="center" style="display: flex; align-items: center;">
   <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg" alt="React Native Logo" width="100" height="100">
   <span style="margin: 0 10px; font-size: 24px;"> </span>
-  <img src="https://github.com/react-navigation" alt="React Native Navigation Logo" width="100" height="100">
+  <img src="https://spin.atomicobject.com/wp-content/uploads/react-navigation.png" alt="React Native Navigation Logo" width="100" height="100">
   <span style="margin: 0 10px; font-size: 24px;"> </span>
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/SQLite370.svg/2560px-SQLite370.svg.png" alt="SQlite Logo" width="100" height="100">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/SQLite370.svg/2560px-SQLite370.svg.png" alt="SQlite Logo" width="100" height="200">
   <span style="margin: 0 10px; font-size: 24px;"> </span>
   <img src="https://upload.wikimedia.org/wikipedia/commons/4/4c/Typescript_logo_2020.svg" alt="TS Logo" width="100" height="100">
   <span style="margin: 0 10px; font-size: 24px;"> </span>
   <img src="https://ru.wikipedia.org/wiki/JavaScript#/media/%D0%A4%D0%B0%D0%B9%D0%BB:Unofficial_JavaScript_logo_2.svg/2" alt="JS Logo" width="100" height="100">
   
 </div>
+
 
 # Установка апк файла
 
