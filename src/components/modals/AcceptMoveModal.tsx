@@ -1,6 +1,10 @@
 import React from 'react';
 import {View, Text, StyleSheet, Modal, Dimensions} from 'react-native';
-import {useAppSettings, setButtonColor} from '../../../assets/settingsContext';
+import {
+  useAppSettings,
+  setButtonColor,
+  borderButtonStyle,
+} from '../../../assets/settingsContext';
 import {COLOR} from '../../../assets/colorTheme';
 import {Button} from 'react-native-paper';
 const {height} = Dimensions.get('window');
@@ -39,7 +43,7 @@ const AcceptMoveModal: React.FC<AcceptMoveModalProps> = ({
             </View>
             <View style={styles.buttonsItem}>
               <Button
-                style={styles.button}
+                style={[styles.button, borderButtonStyle()]}
                 buttonColor={setButtonColor(appSettings.darkMode)}
                 mode="contained"
                 onPress={() => onConfirm()}>
@@ -47,6 +51,7 @@ const AcceptMoveModal: React.FC<AcceptMoveModalProps> = ({
               </Button>
               <Button
                 mode="contained"
+                style={borderButtonStyle()}
                 buttonColor={setButtonColor(appSettings.darkMode)}
                 onPress={() => onCloseAcceptModal()}>
                 Отмена

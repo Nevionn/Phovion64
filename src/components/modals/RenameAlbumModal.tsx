@@ -3,7 +3,11 @@ import {View, Text, TextInput, Modal, StyleSheet} from 'react-native';
 import {Button} from 'react-native-paper';
 import {COLOR} from '../../../assets/colorTheme';
 import {useAlbumsRequest} from '../../hooks/useAlbumsRequest';
-import {useAppSettings, setButtonColor} from '../../../assets/settingsContext';
+import {
+  useAppSettings,
+  setButtonColor,
+  borderButtonStyle,
+} from '../../../assets/settingsContext';
 import eventEmitter from '../../../assets/eventEmitter';
 
 interface RenameAlbumModalProps {
@@ -60,12 +64,14 @@ const RenameAlbumModal: React.FC<RenameAlbumModalProps> = ({
           <View style={styles.buttonContainer}>
             <Button
               mode="contained"
+              style={borderButtonStyle()}
               buttonColor={setButtonColor(appSettings.darkMode)}
               onPress={() => handleSave()}>
               Сохранить
             </Button>
             <Button
               mode="contained"
+              style={borderButtonStyle()}
               buttonColor={setButtonColor(appSettings.darkMode)}
               onPress={() => handleCloseModal()}>
               Отмена

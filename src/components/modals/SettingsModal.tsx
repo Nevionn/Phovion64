@@ -14,6 +14,7 @@ import {
   setButtonTextColorRecommendation,
   setSvgIconColor,
   setAlertColor,
+  borderButtonStyle,
 } from '../../../assets/settingsContext';
 import {useNavigation} from '@react-navigation/native';
 import eventEmitter from '../../../assets/eventEmitter';
@@ -214,12 +215,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           <View style={styles.buttonsItem}>
             <Button
               mode="contained"
+              style={borderButtonStyle()}
               buttonColor={setButtonColor(appSettings.darkMode)}
               onPress={() => handleSave()}>
               Сохранить
             </Button>
             <Button
               mode="contained"
+              style={borderButtonStyle()}
               buttonColor={setButtonColor(appSettings.darkMode)}
               onPress={() => handleCloseSettingsModal()}>
               Отмена

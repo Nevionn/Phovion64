@@ -1,6 +1,10 @@
 import React, {useState} from 'react';
 import {View, Text, TextInput, Modal, StyleSheet} from 'react-native';
-import {useAppSettings, setButtonColor} from '../../../assets/settingsContext';
+import {
+  useAppSettings,
+  setButtonColor,
+  borderButtonStyle,
+} from '../../../assets/settingsContext';
 import {Button} from 'react-native-paper';
 import {COLOR} from '../../../assets/colorTheme';
 
@@ -55,12 +59,14 @@ const NewAlbumModal: React.FC<NewAlbumModalProps> = ({
           <View style={styles.buttonContainer}>
             <Button
               mode="contained"
+              style={borderButtonStyle()}
               buttonColor={setButtonColor(appSettings.darkMode)}
               onPress={() => handleSave()}>
               Сохранить
             </Button>
             <Button
               mode="contained"
+              style={borderButtonStyle()}
               buttonColor={setButtonColor(appSettings.darkMode)}
               onPress={() => handleCloseModal()}>
               Отмена
