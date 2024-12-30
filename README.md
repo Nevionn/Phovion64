@@ -4,6 +4,7 @@
 
 Отличное решение для тех, кто ценит конфиденциальность.
 
+
 <div align="center" style="display: flex; align-items: center;">
   <img src="./screenshots/1.jpg" alt="1" width="200" height="200">
   <img src="./screenshots/2.jpg" alt="2" width="200" height="200">
