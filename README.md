@@ -2,7 +2,16 @@
 
 Мобильное приложение, созданное для надежной защиты вашего фото-контента. Оно позволяет шифровать изображения с использованием формата Base64, обеспечивая безопасное хранение данных. Для дополнительной защиты предусмотрена возможность установки PIN-кода, что делает доступ к вашему контенту максимально персонализированным и безопасным.
 
-Идеальное решение для тех, кто ценит конфиденциальность.
+Отличное решение для тех, кто ценит конфиденциальность.
+
+<div align="center" style="display: flex; align-items: center;">
+  <img src="./screenshots/1.jpg" alt="1" width="200" height="200">
+  <img src="./screenshots/2.jpg" alt="2" width="200" height="200">
+  <img src="./screenshots/3.jpg" alt="3" width="200" height="200">
+  <img src="./screenshots/4.jpg" alt="4" width="200" height="200">
+  <img src="./screenshots/5.jpg" alt="5" width="200" height="200">
+  <img src="./screenshots/6.jpg" alt="6" width="200" height="200">
+</div>
 
 # Стек технологий
 
@@ -23,7 +32,7 @@
 
 Зайти в раздел [релиз](https://gitlab.com/web4450122/security-gallery/-/releases) и скачать файл hanzo64.apk
 
-# Установка из исходников
+# Установка из исходников на андроид
 
 ```bash
 git clone https://gitlab.com/web4450122/security-gallery.git
