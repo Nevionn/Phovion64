@@ -17,12 +17,17 @@ import SvgDotsVertical from './icons/SvgDotsVertical';
 import {IconButton} from 'react-native-paper';
 import SvgBidirectionalArrows from './icons/SvgBidirectionalArrows';
 import {ModalText} from '../../assets/textForModal';
-import NaviBarPhotoProps from '../types/NaviBarPhotoProps';
 import AcceptMoveModal from './modals/AcceptMoveModal';
 import RenameAlbumModal from './modals/RenameAlbumModal';
 import {COLOR} from '../../assets/colorTheme';
 import {pickImage} from '../../assets/camera';
 import {capturePhoto} from '../../assets/camera';
+
+interface NaviBarPhotoProps {
+  titleAlbum: string;
+  idAlbum: string;
+  sortPhotos: () => void;
+}
 
 const NavibarPhoto: React.FC<NaviBarPhotoProps> = ({
   titleAlbum,
