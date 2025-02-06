@@ -18,6 +18,7 @@ import eventEmitter from '../../assets/eventEmitter';
 import {useRoute} from '@react-navigation/native';
 import NavibarPhoto from '../components/NavibarPhoto';
 import ImageViewer from '../components/ImageViewer';
+import UploadingIndicator from '../components/UploadingIndicator';
 
 interface PhotoObjectArray {
   id: number;
@@ -88,7 +89,7 @@ const PhotoPage = () => {
       <View style={styles.topSpacer} />
 
       {uploadingPhotos && (
-        <Text style={styles.uploadingText}>Загрузка новых фотографий...</Text>
+        <UploadingIndicator uploadingPhotos={uploadingPhotos} />
       )}
 
       {fetchingPhotos ? (
@@ -179,12 +180,6 @@ const getStyles = (darkMode: boolean) => {
     text: {
       textAlign: 'center',
       color: darkMode ? COLOR.dark.TEXT_BRIGHT : COLOR.light.TEXT_BRIGHT,
-    },
-    uploadingText: {
-      textAlign: 'center',
-      color: darkMode ? COLOR.dark.TEXT_BRIGHT : COLOR.light.TEXT_BRIGHT,
-      fontSize: 16,
-      marginBottom: 10,
     },
   });
 };
