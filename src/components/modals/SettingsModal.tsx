@@ -15,7 +15,6 @@ import {
   setSvgIconColor,
   setAlertColor,
 } from '../../../assets/settingsContext';
-import {borderButtonStyle} from '../../../assets/colorTheme';
 import {useNavigation} from '@react-navigation/native';
 import eventEmitter from '../../../assets/eventEmitter';
 import SvgPassword from '../icons/SvgPassword';
@@ -232,15 +231,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           <Divider />
           <View style={styles.buttonsItem}>
             <Button
-              mode="contained"
-              style={borderButtonStyle()}
+              mode="elevated"
+              textColor={COLOR.dark.TEXT_BRIGHT}
               buttonColor={setButtonColor(appSettings.darkMode)}
               onPress={() => handleSave()}>
               Сохранить
             </Button>
             <Button
-              mode="contained"
-              style={borderButtonStyle()}
+              mode="elevated"
+              textColor={COLOR.dark.TEXT_BRIGHT}
               buttonColor={setButtonColor(appSettings.darkMode)}
               onPress={() => handleCloseSettingsModal()}>
               Отмена

@@ -1,7 +1,6 @@
 import React from 'react';
 import {View, Text, StyleSheet, Modal, StatusBar} from 'react-native';
 import {useAppSettings, setButtonColor} from '../../../assets/settingsContext';
-import {borderButtonStyle} from '../../../assets/colorTheme';
 import {COLOR} from '../../../assets/colorTheme';
 import {Button} from 'react-native-paper';
 import SvgAlert from '../icons/SvgAlert';
@@ -44,15 +43,16 @@ const AcceptMoveModal: React.FC<AcceptMoveModalProps> = ({
             </View>
             <View style={styles.buttonsItem}>
               <Button
-                style={[styles.button, borderButtonStyle()]}
+                mode="elevated"
+                textColor={COLOR.dark.TEXT_BRIGHT}
+                style={styles.button}
                 buttonColor={setButtonColor(appSettings.darkMode)}
-                mode="contained"
                 onPress={() => onConfirm()}>
                 Удалить
               </Button>
               <Button
-                mode="contained"
-                style={borderButtonStyle()}
+                mode="elevated"
+                textColor={COLOR.dark.TEXT_BRIGHT}
                 buttonColor={setButtonColor(appSettings.darkMode)}
                 onPress={() => onCloseAcceptModal()}>
                 Отмена
