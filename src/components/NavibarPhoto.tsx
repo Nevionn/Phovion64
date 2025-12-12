@@ -203,21 +203,12 @@ const getStyles = (darkMode: boolean) => {
   return StyleSheet.create({
     navibar: {
       flexDirection: 'column',
-      marginTop: 8,
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      height: 100,
-      width: '100%',
       zIndex: 10,
     },
     manipulationItem: {
       justifyContent: 'space-between',
       alignItems: 'center',
       flexDirection: 'row',
-      width: '100%',
-      height: '60%',
     },
     rightItemContent: {
       justifyContent: 'flex-start',
@@ -228,7 +219,6 @@ const getStyles = (darkMode: boolean) => {
       justifyContent: 'flex-start',
       alignItems: 'center',
       flexDirection: 'row',
-      height: '40%',
       width: '100%',
     },
     title: {

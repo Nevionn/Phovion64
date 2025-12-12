@@ -1,28 +1,30 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   StatusBar,
-  StyleSheet,
   Text,
   View,
   Image,
-  FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  StyleSheet,
+  ScrollView,
 } from 'react-native';
+import Animated, {useAnimatedRef} from 'react-native-reanimated';
+import Sortable from 'react-native-sortables';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
-import {COLOR} from '../../assets/colorTheme';
+import {useNavigation} from '@react-navigation/native';
+
 import NaviBar from '../components/Navibar';
 import CounterMediaData from '../components/CounterMediaData';
-
 import NewAlbumModal from '../components/modals/NewAlbumModal';
 import SettingsModal from '../components/modals/SettingsModal';
 
-import {useNavigation} from '@react-navigation/native';
+import {COLOR} from '../../assets/colorTheme';
+
 import {useAlbumsRequest} from '../hooks/useAlbumsRequest';
 import {useSettingsRequest} from '../hooks/useSettingsRequest';
 import useMediaInformation from '../hooks/useMediaInformation';
 import {useAppSettings, setStatusBarTheme} from '../../assets/settingsContext';
-
 import eventEmitter from '../../assets/eventEmitter';
 
 interface Album {
@@ -35,22 +37,23 @@ interface Album {
 
 const MainPage: React.FC = () => {
   const navigation: any = useNavigation();
+  const insets = useSafeAreaInsets();
 
   const {addAlbum, getAllAlbums} = useAlbumsRequest();
   const {acceptSettings, getSettings} = useSettingsRequest();
   const {appSettings, saveAppSettings} = useAppSettings();
   const {calcAllAlbums, calcAllPhotos} = useMediaInformation();
 
+  const [albums, setAlbums] = useState<Album[]>([]);
+  const [fetchingAlbums, setFetchingAlbums] = useState(false);
+  const [albumCount, setAlbumCount] = useState(0);
+  const [photoCount, setPhotoCount] = useState(0);
   const [isModalAddAlbumVisible, setModalAddAlbumVisible] = useState(false);
   const [isSettingsModalVisible, setIsSettingsModalVisible] = useState(false);
 
-  const [albums, setAlbums] = useState<Album[]>([]);
-  const [fetchingAlbums, setFetchingAlbums] = useState(false);
+  const styles = getStyles(appSettings.darkMode);
 
-  const [photoCount, setPhotoCount] = useState(0);
-  const [albumCount, setAlbumCount] = useState(0);
-
-  const insets = useSafeAreaInsets();
+  const scrollRef = useAnimatedRef<Animated.ScrollView>();
 
   useEffect(() => {
     getSettings(saveAppSettings);
@@ -59,7 +62,6 @@ const MainPage: React.FC = () => {
   useEffect(() => {
     const updateAlbums = () => {
       setFetchingAlbums(true);
-
       getAllAlbums((fetchedAlbums: Album[]) => {
         setAlbums(fetchedAlbums);
         setFetchingAlbums(false);
@@ -67,8 +69,8 @@ const MainPage: React.FC = () => {
     };
 
     updateAlbums();
-
     eventEmitter.on('albumsUpdated', updateAlbums);
+
     return () => {
       eventEmitter.off('albumsUpdated', updateAlbums);
     };
@@ -77,12 +79,12 @@ const MainPage: React.FC = () => {
   useEffect(() => {
     const fetchPhotoAndAlbumCount = async () => {
       try {
-        const [albums, photos] = await Promise.all([
+        const [albumsCount, photosCount] = await Promise.all([
           calcAllAlbums(),
           calcAllPhotos(),
         ]);
-        setAlbumCount(albums);
-        setPhotoCount(photos);
+        setAlbumCount(albumsCount);
+        setPhotoCount(photosCount);
       } catch (error) {
         console.error(
           'Ошибка при получении количества альбомов и фотографий:',
@@ -103,24 +105,22 @@ const MainPage: React.FC = () => {
   }, []);
 
   const openSettings = () => setIsSettingsModalVisible(true);
+  const openCreateAlbumModal = () => setModalAddAlbumVisible(true);
 
   const saveSettings = (newSettings: typeof appSettings) => {
     saveAppSettings(newSettings);
-    console.log('Настройки сохранены:', newSettings);
     acceptSettings(newSettings);
   };
 
-  const openCreateAlbumModal = () => setModalAddAlbumVisible(true);
-
   const handleAddAlbum = (newAlbum: {title: string}) => {
     const currentDate = new Date();
-
     const albumToInsert = {
       title: newAlbum.title,
       countPhoto: 0,
       created_at: currentDate.toLocaleString(),
     };
-    addAlbum(albumToInsert), getAllAlbums(setAlbums, appSettings.sortOrder);
+    addAlbum(albumToInsert);
+    getAllAlbums(setAlbums, appSettings.sortOrder);
     eventEmitter.emit('albumsUpdated');
   };
 
@@ -128,7 +128,54 @@ const MainPage: React.FC = () => {
     navigation.navigate('PhotoPage', {album});
   };
 
-  const styles = getStyles(appSettings.darkMode);
+  const handleOrderChange = ({
+    fromIndex,
+    toIndex,
+  }: {
+    fromIndex: number;
+    toIndex: number;
+  }) => {
+    setAlbums(prevAlbums => {
+      const newAlbums = [...prevAlbums];
+      const [movedItem] = newAlbums.splice(fromIndex, 1);
+      newAlbums.splice(toIndex, 0, movedItem);
+      return newAlbums;
+    });
+  };
+
+  const renderAlbumItem = useCallback(
+    ({item}: {item: Album}) => (
+      <TouchableOpacity
+        style={styles.placeHolder}
+        onPress={() => openAlbum(item)}>
+        <View style={styles.imagePlace}>
+          {item.coverPhoto ? (
+            <Image
+              source={{uri: `data:image/jpeg;base64,${item.coverPhoto}`}}
+              style={styles.image}
+            />
+          ) : (
+            <Image
+              source={require('../../assets/images/not_img_default.png')}
+              style={styles.image}
+            />
+          )}
+        </View>
+
+        <View style={styles.textImageHolder}>
+          <Text style={styles.textNameAlbum}>
+            {item.title.length > 12
+              ? `${item.title.substring(0, 20)}...`
+              : item.title}
+          </Text>
+          <Text style={styles.textCountPhoto}>
+            {`фотографий ${item.countPhoto}`}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    ),
+    [openAlbum, styles],
+  );
 
   return (
     <SafeAreaView style={styles.root}>
@@ -153,52 +200,28 @@ const MainPage: React.FC = () => {
       {fetchingAlbums ? (
         <ActivityIndicator size="large" color={COLOR.LOAD} style={{flex: 1}} />
       ) : (
-        <FlatList
-          data={albums}
-          numColumns={2}
-          keyExtractor={item => item.id.toString()}
-          renderItem={({item}) => (
-            <TouchableOpacity
-              style={styles.placeHolder}
-              onPress={() => openAlbum(item)}>
-              <View style={styles.imagePlace}>
-                {item.coverPhoto ? (
-                  <Image
-                    source={{uri: `data:image/jpeg;base64,${item.coverPhoto}`}}
-                    style={styles.image}
-                  />
-                ) : (
-                  <Image
-                    source={require('../../assets/images/not_img_default.png')}
-                    style={styles.image}
-                  />
-                )}
-              </View>
-              <View style={styles.textImageHolder}>
-                <Text style={styles.textNameAlbum}>
-                  {item.title.length > 12
-                    ? `${item.title.substring(0, 20)}...`
-                    : item.title}
-                </Text>
-                <Text
-                  style={
-                    styles.textCountPhoto
-                  }>{`фотографий ${item.countPhoto}`}</Text>
-              </View>
-            </TouchableOpacity>
-          )}
-          contentContainerStyle={[
-            albums.length === 0 ? {flex: 1, justifyContent: 'center'} : null,
-            {paddingBottom: insets.bottom},
-          ]}
-          ListFooterComponent={<View style={styles.stab} />}
-          ListEmptyComponent={
-            <View style={styles.emptyDataItem}>
-              <Text style={styles.text}>Альбомов нет</Text>
-            </View>
-          }
-        />
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={{paddingBottom: insets.bottom + 20}}
+          showsVerticalScrollIndicator={false}>
+          <Sortable.Grid
+            data={albums}
+            columns={2}
+            rowGap={10}
+            columnGap={10}
+            strategy={'insert'}
+            scrollableRef={scrollRef}
+            autoScrollEnabled={true}
+            autoScrollActivationOffset={80}
+            showDropIndicator
+            dropIndicatorStyle={styles.dropIndicator}
+            keyExtractor={item => String(item.id)}
+            renderItem={renderAlbumItem}
+            onOrderChange={handleOrderChange}
+          />
+        </ScrollView>
       )}
+
       <NewAlbumModal
         visible={isModalAddAlbumVisible}
         onClose={() => setModalAddAlbumVisible(false)}
@@ -219,11 +242,17 @@ export default MainPage;
 const getStyles = (darkMode: boolean) => {
   return StyleSheet.create({
     root: {
-      flexGrow: 1,
+      flex: 1,
       justifyContent: 'center',
       backgroundColor: darkMode
         ? COLOR.dark.MAIN_COLOR
         : COLOR.light.MAIN_COLOR,
+    },
+    dropIndicator: {
+      backgroundColor: 'rgba(54, 135, 127, 0.5)',
+      borderColor: '#36877f',
+      borderStyle: 'solid',
+      borderWidth: 5,
     },
     placeHolder: {
       flexBasis: '45%',

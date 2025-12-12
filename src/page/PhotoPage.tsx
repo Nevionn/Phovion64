@@ -1,21 +1,26 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   StatusBar,
-  StyleSheet,
-  Text,
   View,
-  Dimensions,
-  FlatList,
-  TouchableOpacity,
   Image,
-  SafeAreaView,
+  TouchableOpacity,
   ActivityIndicator,
+  SafeAreaView,
+  Text,
+  Dimensions,
+  StyleSheet,
+  ScrollView,
 } from 'react-native';
+import Animated, {useAnimatedRef} from 'react-native-reanimated';
 import {usePhotoRequest} from '../hooks/usePhotoRequest';
 import {useAppSettings, setStatusBarTheme} from '../../assets/settingsContext';
-import {COLOR} from '../../assets/colorTheme';
-import eventEmitter from '../../assets/eventEmitter';
 import {useRoute} from '@react-navigation/native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import eventEmitter from '../../assets/eventEmitter';
+
+import {COLOR} from '../../assets/colorTheme';
+
+import Sortable from 'react-native-sortables';
 import NavibarPhoto from '../components/NavibarPhoto';
 import ImageViewer from '../components/ImageViewer';
 import UploadingIndicator from '../components/UploadingIndicator';
@@ -34,34 +39,38 @@ const PhotoPage = () => {
   const route: any = useRoute();
   const dataAlbum = route?.params;
 
-  const [isVisibleImageViewer, setIsVisibleImageViewer] = useState(false);
+  const insets = useSafeAreaInsets();
+
   const [photos, setPhotos] = useState<PhotoObjectArray[]>([]);
+  const [fetchingPhotos, setFetchingPhotos] = useState(false);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
+
+  const [isVisibleImageViewer, setIsVisibleImageViewer] = useState(false);
   const [initialIndex, setInitialIndex] = useState(0);
   const [idAlbum, setIdAlbum] = useState(0);
   const [idPhoto, setIdPhoto] = useState(0);
 
-  const [fetchingPhotos, setFetchingPhotos] = useState(false);
-  const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  const styles = getStyles(appSettings.darkMode);
+  const scrollRef = useAnimatedRef<Animated.ScrollView>();
 
   const openImageViewer = (index: number, id: number) => {
     setInitialIndex(index);
-    setIdPhoto(id); // порядковый номер фото в таблице
+    setIdPhoto(id);
     setIdAlbum(dataAlbum.album.id);
     setIsVisibleImageViewer(true);
   };
 
-  const closeImageViewer = () => {
-    setIsVisibleImageViewer(false);
-  };
+  const closeImageViewer = () => setIsVisibleImageViewer(false);
 
   const reversePhotosSort = () => {
-    setPhotos(prevPhotos => [...prevPhotos].reverse());
+    setPhotos(prev => [...prev].reverse());
   };
 
   useEffect(() => {
+    if (!dataAlbum?.album?.id) return;
+
     const updatePhotos = () => {
       setFetchingPhotos(true);
-
       getPhoto(dataAlbum.album.id, (fetchedPhotos: PhotoObjectArray[]) => {
         setPhotos(fetchedPhotos);
         setFetchingPhotos(false);
@@ -75,9 +84,36 @@ const PhotoPage = () => {
     return () => {
       eventEmitter.off('photosUpdated', updatePhotos);
     };
-  }, [dataAlbum.album.id]);
+  }, [dataAlbum?.album?.id]);
 
-  const styles = getStyles(appSettings.darkMode);
+  const handleOrderChange = ({
+    fromIndex,
+    toIndex,
+  }: {
+    fromIndex: number;
+    toIndex: number;
+  }) => {
+    setPhotos(prev => {
+      const newPhotos = [...prev];
+      const [moved] = newPhotos.splice(fromIndex, 1);
+      newPhotos.splice(toIndex, 0, moved);
+      return newPhotos;
+    });
+  };
+
+  const renderPhotoItem = useCallback(
+    ({item, index}: {item: PhotoObjectArray; index: number}) => (
+      <TouchableOpacity
+        onPress={() => openImageViewer(index, item.id)}
+        style={styles.placeHolder}>
+        <Image
+          source={{uri: `data:image/jpeg;base64,${item.photo}`}}
+          style={styles.image}
+        />
+      </TouchableOpacity>
+    ),
+    [openImageViewer, styles],
+  );
 
   return (
     <SafeAreaView style={styles.root}>
@@ -86,6 +122,13 @@ const PhotoPage = () => {
         translucent
         backgroundColor="transparent"
       />
+      <NavibarPhoto
+        titleAlbum={dataAlbum.album.title}
+        idAlbum={dataAlbum.album.id}
+        sortPhotos={reversePhotosSort}
+        setUploadingPhotos={setUploadingPhotos}
+      />
+
       <View style={styles.topSpacer} />
 
       {uploadingPhotos && (
@@ -102,33 +145,28 @@ const PhotoPage = () => {
           <Text style={styles.text}>Чтение данных</Text>
         </View>
       ) : (
-        <FlatList
-          data={photos}
-          numColumns={3}
-          keyExtractor={item => item.id.toString()}
-          renderItem={({item, index}) => (
-            <TouchableOpacity
-              style={styles.placeHolder}
-              onPress={() => openImageViewer(index, item.id)}>
-              <Image
-                source={{uri: `data:image/jpeg;base64,${item.photo}`}}
-                style={styles.image}
-              />
-            </TouchableOpacity>
-          )}
-          contentContainerStyle={
-            photos.length === 0 ? {flex: 1, justifyContent: 'center'} : null
-          }
-          ListEmptyComponent={<Text style={styles.text}>Фотографий нет</Text>}
-        />
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={{paddingBottom: insets.bottom + 20}}
+          showsVerticalScrollIndicator={false}>
+          <Sortable.Grid
+            data={photos}
+            columns={3}
+            rowGap={2}
+            columnGap={2}
+            strategy={'insert'}
+            scrollableRef={scrollRef}
+            autoScrollEnabled={true}
+            autoScrollActivationOffset={80}
+            showDropIndicator
+            dropIndicatorStyle={styles.dropIndicator}
+            keyExtractor={item => item.id.toString()}
+            renderItem={renderPhotoItem}
+            onOrderChange={handleOrderChange}
+          />
+        </ScrollView>
       )}
 
-      <NavibarPhoto
-        titleAlbum={dataAlbum.album.title}
-        idAlbum={dataAlbum.album.id}
-        sortPhotos={reversePhotosSort}
-        setUploadingPhotos={setUploadingPhotos}
-      />
       <ImageViewer
         visible={isVisibleImageViewer}
         onCloseImgViewer={closeImageViewer}
@@ -141,18 +179,25 @@ const PhotoPage = () => {
   );
 };
 
+export default PhotoPage;
+
 const getStyles = (darkMode: boolean) => {
   return StyleSheet.create({
     root: {
-      flexGrow: 1,
-      justifyContent: 'center',
-      paddingBottom: 62,
+      flex: 1,
+      justifyContent: 'flex-start',
       backgroundColor: darkMode
         ? COLOR.dark.MAIN_COLOR
         : COLOR.light.MAIN_COLOR,
     },
+    dropIndicator: {
+      backgroundColor: 'rgba(54, 135, 127, 0.5)',
+      borderColor: '#36877f',
+      borderStyle: 'solid',
+      borderWidth: 5,
+    },
     topSpacer: {
-      height: '19%',
+      height: '5%',
     },
     placeHolder: {
       margin: 2,
@@ -183,5 +228,3 @@ const getStyles = (darkMode: boolean) => {
     },
   });
 };
-
-export default PhotoPage;
