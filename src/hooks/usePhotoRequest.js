@@ -203,6 +203,18 @@ const useDeleteAllPhotosCurrentAlbum = () => {
           console.error('Ошибка при обнуление обложки:', error);
         },
       );
+
+      // Переводим ручной режим установки обложки альбома снова в автоматический
+      tx.executeSql(
+        'UPDATE AlbumsTable SET manualCoverMode = 0 WHERE id =?',
+        [albumId],
+        (_, updateResults) => {
+          console.log('Режим обложки переведен в автоматический');
+        },
+        error => {
+          console.error('Ошибка при обнуление режима:', error);
+        },
+      );
     });
   };
 };
