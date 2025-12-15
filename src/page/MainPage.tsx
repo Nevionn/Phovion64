@@ -40,7 +40,7 @@ const MainPage: React.FC = () => {
   const navigation: any = useNavigation();
   const insets = useSafeAreaInsets();
 
-  const {addAlbum, getAllAlbums} = useAlbumsRequest();
+  const {addAlbum, getAllAlbums, saveAlbumsOrder} = useAlbumsRequest();
   const {acceptSettings, getSettings} = useSettingsRequest();
   const {appSettings, saveAppSettings} = useAppSettings();
   const {calcAllAlbums, calcAllPhotos} = useMediaInformation();
@@ -69,7 +69,7 @@ const MainPage: React.FC = () => {
       getAllAlbums((fetchedAlbums: Album[]) => {
         setAlbums(fetchedAlbums);
         setFetchingAlbums(false);
-      }, appSettings.sortOrder);
+      });
     };
 
     updateAlbums();
@@ -128,7 +128,7 @@ const MainPage: React.FC = () => {
       created_at: currentDate.toLocaleString(),
     };
     addAlbum(albumToInsert);
-    getAllAlbums(setAlbums, appSettings.sortOrder);
+    getAllAlbums(setAlbums);
     eventEmitter.emit('albumsUpdated');
   };
 
@@ -136,20 +136,24 @@ const MainPage: React.FC = () => {
     navigation.navigate('PhotoPage', {album});
   };
 
-  const handleOrderChange = ({
-    fromIndex,
-    toIndex,
-  }: {
-    fromIndex: number;
-    toIndex: number;
-  }) => {
-    setAlbums(prevAlbums => {
-      const newAlbums = [...prevAlbums];
-      const [movedItem] = newAlbums.splice(fromIndex, 1);
-      newAlbums.splice(toIndex, 0, movedItem);
-      return newAlbums;
-    });
-  };
+  const handleOrderChange = useCallback(
+    ({fromIndex, toIndex}: {fromIndex: number; toIndex: number}) => {
+      setAlbums(prev => {
+        const updated = [...prev];
+        const [moved] = updated.splice(fromIndex, 1);
+        updated.splice(toIndex, 0, moved);
+
+        // сохраняем новый порядок в БД
+        saveAlbumsOrder(updated);
+
+        return updated;
+      });
+    },
+    [saveAlbumsOrder],
+  );
+
+  const isReorderEnabled = searchQuery.length === 0;
+  const gridData = isReorderEnabled ? albums : filteredAlbums;
 
   const renderAlbumItem = useCallback(
     ({item}: {item: Album}) => (
@@ -208,6 +212,12 @@ const MainPage: React.FC = () => {
         </View>
       )}
 
+      {searchQuery.length > 0 && (
+        <Text style={styles.textHelper}>
+          Сортировка отключена во время поиска
+        </Text>
+      )}
+
       {albums.length > 0 && (
         <CounterMediaData
           albumCount={albumCount}
@@ -224,19 +234,19 @@ const MainPage: React.FC = () => {
           contentContainerStyle={{paddingBottom: insets.bottom + 20}}
           showsVerticalScrollIndicator={false}>
           <Sortable.Grid
-            data={filteredAlbums}
+            data={gridData}
             columns={2}
             rowGap={10}
             columnGap={10}
-            strategy={'insert'}
+            strategy="insert"
             scrollableRef={scrollRef}
-            autoScrollEnabled={true}
+            autoScrollEnabled={isReorderEnabled}
             autoScrollActivationOffset={80}
-            showDropIndicator
+            showDropIndicator={isReorderEnabled}
             dropIndicatorStyle={styles.dropIndicator}
             keyExtractor={item => String(item.id)}
             renderItem={renderAlbumItem}
-            onOrderChange={handleOrderChange}
+            onOrderChange={isReorderEnabled ? handleOrderChange : undefined}
           />
         </ScrollView>
       )}
@@ -311,12 +321,13 @@ const getStyles = (darkMode: boolean) => {
       justifyContent: 'center',
       alignItems: 'center',
     },
-    stab: {
-      height: 30,
-    },
     text: {
       textAlign: 'center',
       color: darkMode ? COLOR.dark.TEXT_BRIGHT : COLOR.light.TEXT_BRIGHT,
+    },
+    textHelper: {
+      textAlign: 'center',
+      color: darkMode ? COLOR.dark.TEXT_DIM : COLOR.light.TEXT_DIM,
     },
   });
 };

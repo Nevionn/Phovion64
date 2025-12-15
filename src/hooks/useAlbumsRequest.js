@@ -1,67 +1,207 @@
 import SQLite from 'react-native-sqlite-storage';
 
+/**
+ * Хранилище альбомов (SQLite)
+ *
+ * Отвечает за:
+ * - инициализацию таблицы AlbumsTable
+ * - добавление новых альбомов (в начало списка)
+ * - сохранение порядка альбомов после Drag & Drop
+ * - получение списка альбомов в сохранённом порядке
+ * - переименование альбома
+ * - установку обложки альбома
+ * - удаление альбомов
+ *
+ * Закомментированные логи в DEV режиме могут бить по производительности. При необходимости раскомментировать
+ */
+
 const db = SQLite.openDatabase({name: 'database.db', location: 'default'});
 
-db.transaction(tx => {
-  tx.executeSql(
-    'CREATE TABLE IF NOT EXISTS AlbumsTable (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, countPhoto INTEGER, created_at TEXT, coverPhoto TEXT, manualCoverMode INTEGER DEFAULT 0)',
-    [],
-    (tx, results) => {
-      console.log('Таблица альбомов создана');
-    },
-  );
-});
+const initAlbumsTable = () => {
+  db.transaction(tx => {
+    tx.executeSql(
+      `
+      CREATE TABLE IF NOT EXISTS AlbumsTable (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT,
+        countPhoto INTEGER,
+        created_at TEXT,
+        coverPhoto TEXT,
+        manualCoverMode INTEGER DEFAULT 0,
+        sortOrder INTEGER
+      )
+      `,
+      [],
+      () => {
+        console.log('Таблица альбомов создана');
+      },
+      error => {
+        console.error('❌ Ошибка при создании таблицы AlbumsTable', error);
+      },
+    );
+  });
+
+  ensureSortOrderColumn();
+};
+
+/**
+ * Проверяет наличие колонки sortOrder.
+ * Если приложение обновилось со старой схемы БД —
+ * колонка будет добавлена без потери данных.
+ */
+
+const ensureSortOrderColumn = () => {
+  db.transaction(tx => {
+    tx.executeSql('PRAGMA table_info(AlbumsTable)', [], (_, result) => {
+      const hasSortOrder = Array.from({length: result.rows.length}, (_, i) =>
+        result.rows.item(i),
+      ).some(col => col.name === 'sortOrder');
+
+      if (!hasSortOrder) {
+        tx.executeSql('ALTER TABLE AlbumsTable ADD COLUMN sortOrder INTEGER');
+      }
+    });
+  });
+};
+
+initAlbumsTable();
+
+/**
+ * Добавление нового альбома.
+ *
+ * Логика:
+ * 1. Все существующие альбомы сдвигаются вниз (sortOrder + 1)
+ * 2. Новый альбом вставляется с sortOrder = 0 (всегда появляется первым)
+ *
+ */
 
 const useAddNewAlbumToTable = () => {
   return newAlbum => {
-    db.transaction(tx => {
-      tx.executeSql(
-        'INSERT INTO AlbumsTable (title, countPhoto, created_at) VALUES (?, ?, ?)',
-        [newAlbum.title, newAlbum.countPhoto, newAlbum.created_at],
-        (_, results) => {
-          console.log('Альбом успешно добавлен в таблицу.');
-        },
-        error => {
-          console.error('Ошибка при выполнении SQL-запроса:', error);
-        },
-      );
-    });
+    db.transaction(
+      tx => {
+        console.log('Новый альбом добавлен в начало');
+
+        // сдвигаем все существующие альбомы вниз
+        tx.executeSql(
+          'UPDATE AlbumsTable SET sortOrder = sortOrder + 1',
+          [],
+          (_, res) => {
+            console.log(
+              `сдвиг альбомов вниз: rowsAffected=${res.rowsAffected}`,
+            );
+          },
+          error => {
+            console.error('❌ Failed to shift sortOrder', error);
+          },
+        );
+
+        // вставляем новый альбом с sortOrder = 0
+        tx.executeSql(
+          `
+          INSERT INTO AlbumsTable
+            (title, countPhoto, created_at, sortOrder)
+          VALUES (?, ?, ?, 0)
+          `,
+          [newAlbum.title, newAlbum.countPhoto, newAlbum.created_at],
+          (_, res) => {
+            console.log(`✅ Альбом "${newAlbum.title}" добавлен с sortOrder=0`);
+          },
+          error => {
+            console.error('❌ INSERT album failed', error);
+          },
+        );
+      },
+      error => {
+        console.error('❌ addAlbum transaction error', error);
+      },
+    );
   };
 };
+
+/**
+ * Сохранение порядка альбомов после Drag & Drop.
+ *
+ * @param {Array<{id: number}>} albums
+ * Массив альбомов в новом порядке (индекс = sortOrder)
+ */
+
+const useSaveAlbumsOrder = () => {
+  return albums => {
+    // console.log(
+    //   '💾 saveAlbumsOrder:',
+    //   albums.map(a => a.id),
+    // );
+
+    db.transaction(
+      tx => {
+        albums.forEach((album, index) => {
+          // console.log(`↳ id=${album.id}, sortOrder=${index}`);
+
+          tx.executeSql(
+            'UPDATE AlbumsTable SET sortOrder = ? WHERE id = ?',
+            [index, album.id],
+            (_, res) => {
+              if (res.rowsAffected !== 1) {
+                console.warn(
+                  `⚠️ rowsAffected=${res.rowsAffected} for album id=${album.id}`,
+                );
+              }
+            },
+            error => {
+              console.error(`❌ UPDATE failed for album id=${album.id}`, error);
+            },
+          );
+        });
+      },
+      error => {
+        console.error('❌ saveAlbumsOrder transaction error', error);
+      },
+      () => {
+        console.log('saveAlbumsOrder обновлен');
+      },
+    );
+  };
+};
+
+/**
+ * Получение всех альбомов в сохранённом порядке.
+ *
+ * @param {Function} setAlbums
+ */
 
 const useGetAllAlbums = () => {
-  return (setAlbums, orderState) => {
-    // Определяем порядок сортировки и столбец
-    let sortColumn = 'created_at';
-    let sortOrder = 'DESC';
-
-    if (orderState === 'oldest') {
-      sortOrder = 'DESC';
-    } else if (orderState === 'newest') {
-      sortOrder = 'ASC';
-    } else {
-      sortColumn = 'title';
-      sortOrder = 'ASC';
-    }
-
+  return setAlbums => {
     db.transaction(tx => {
       tx.executeSql(
-        `SELECT * FROM AlbumsTable ORDER BY ${sortColumn} ${sortOrder}`,
+        'SELECT * FROM AlbumsTable ORDER BY sortOrder ASC',
         [],
-        (tx, results) => {
-          const albumsList = [];
+        (_, results) => {
+          const list = [];
           for (let i = 0; i < results.rows.length; i++) {
-            albumsList.unshift(results.rows.item(i));
+            list.push(results.rows.item(i));
           }
-          setAlbums(albumsList);
+
+          // console.log(
+          //   '📦 Альбомы получены:',
+          //   list.map(a => ({
+          //     id: a.id,
+          //     sortOrder: a.sortOrder,
+          //   })),
+          // );
+
+          setAlbums(list);
         },
         error => {
-          console.error('Ошибка при получении альбомов:', error);
+          console.error('❌ Ошибка при получении альбомов', error);
         },
       );
     });
   };
 };
+
+/**
+ * Получение количества альбомов.
+ */
 
 const useGetCountAlbums = () => {
   return () => {
@@ -85,6 +225,10 @@ const useGetCountAlbums = () => {
   };
 };
 
+/**
+ * Переименование альбома.
+ */
+
 const useRenameAlbum = () => {
   return (id, newTitle) => {
     db.transaction(tx => {
@@ -101,6 +245,12 @@ const useRenameAlbum = () => {
     });
   };
 };
+
+/**
+ * Установка обложки альбома вручную.
+ * Активирует manualCoverMode = 1.
+ * В положение 0, альбом сам проставляет последнюю, добавленную фотографию в качестве обложки.
+ */
 
 const useSetAlbumCover = () => {
   return (albumId, photoId) => {
@@ -146,6 +296,10 @@ const useSetAlbumCover = () => {
   };
 };
 
+/**
+ * Удаление всех альбомов.
+ */
+
 const useDeleteAllAlbums = () => {
   return () => {
     db.transaction(tx => {
@@ -162,6 +316,10 @@ const useDeleteAllAlbums = () => {
     });
   };
 };
+
+/**
+ * Удаление одного альбома по id.
+ */
 
 const useDeleteAlbum = () => {
   return id => {
@@ -183,6 +341,7 @@ const useDeleteAlbum = () => {
 export function useAlbumsRequest() {
   const addAlbum = useAddNewAlbumToTable();
   const getAllAlbums = useGetAllAlbums();
+  const saveAlbumsOrder = useSaveAlbumsOrder();
   const getCountAlbums = useGetCountAlbums();
   const renameAlbum = useRenameAlbum();
   const setAlbumCover = useSetAlbumCover();
@@ -192,6 +351,7 @@ export function useAlbumsRequest() {
   return {
     addAlbum,
     getAllAlbums,
+    saveAlbumsOrder,
     getCountAlbums,
     renameAlbum,
     setAlbumCover,
