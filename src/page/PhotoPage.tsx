@@ -35,7 +35,7 @@ interface PhotoObjectArray {
 
 const PhotoPage = () => {
   const {appSettings} = useAppSettings();
-  const {getPhoto} = usePhotoRequest();
+  const {getPhoto, savePhotosOrder} = usePhotoRequest();
   const route: any = useRoute();
   const dataAlbum = route?.params;
 
@@ -86,20 +86,21 @@ const PhotoPage = () => {
     };
   }, [dataAlbum?.album?.id]);
 
-  const handleOrderChange = ({
-    fromIndex,
-    toIndex,
-  }: {
-    fromIndex: number;
-    toIndex: number;
-  }) => {
-    setPhotos(prev => {
-      const newPhotos = [...prev];
-      const [moved] = newPhotos.splice(fromIndex, 1);
-      newPhotos.splice(toIndex, 0, moved);
-      return newPhotos;
-    });
-  };
+  const handleOrderChange = useCallback(
+    ({fromIndex, toIndex}: {fromIndex: number; toIndex: number}) => {
+      setPhotos(prev => {
+        const updated = [...prev];
+        const [moved] = updated.splice(fromIndex, 1);
+        updated.splice(toIndex, 0, moved);
+
+        // сохраняем порядок в БД
+        savePhotosOrder(updated);
+
+        return updated;
+      });
+    },
+    [savePhotosOrder],
+  );
 
   const renderPhotoItem = useCallback(
     ({item, index}: {item: PhotoObjectArray; index: number}) => (

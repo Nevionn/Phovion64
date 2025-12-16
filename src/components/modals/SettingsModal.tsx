@@ -29,7 +29,6 @@ interface SettingsModalProps {
 
 interface Settings {
   darkMode: boolean;
-  sortOrder: 'newest' | 'oldest' | 'byName';
 }
 const SettingsModal: React.FC<SettingsModalProps> = ({
   visible,
@@ -48,13 +47,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   const [safetyVisible, setSafetyVisible] = useState(true);
   const [settings, setSettings] = useState<Settings>({
     darkMode: true,
-    sortOrder: 'newest',
   });
 
   // Копия настроек для возврата в случае отмены
   const [backupSettings, setBackupSettings] = useState<Settings>({
     darkMode: false,
-    sortOrder: 'newest',
   });
 
   const [isVisibleAcceptModal, setIsVisibleAcceptModal] = useState(false);
@@ -152,50 +149,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           </View>
           <Divider style={styles.divider} />
           <List.AccordionGroup>
-            <List.Accordion
-              style={styles.accordionItem}
-              titleStyle={styles.text}
-              title="Сортировка"
-              id="1"
-              theme={{
-                colors: setArrowAccordionColor(appSettings.darkMode),
-              }}
-              left={props => (
-                <List.Icon
-                  {...props}
-                  color={setSvgIconColor(appSettings.darkMode)}
-                  icon="sort-alphabetical-ascending"
-                />
-              )}>
-              <View style={styles.accordionContentItem}>
-                <Picker
-                  selectedValue={settings.sortOrder}
-                  style={styles.pickerItem}
-                  dropdownIconColor={appSettings.darkMode ? 'white' : 'black'}
-                  onValueChange={itemValue =>
-                    setSettings(prevSettings => ({
-                      ...prevSettings,
-                      sortOrder: itemValue as Settings['sortOrder'],
-                    }))
-                  }>
-                  <Picker.Item
-                    style={styles.text}
-                    label="Новые альбомы"
-                    value="newest"
-                  />
-                  <Picker.Item
-                    style={styles.text}
-                    label="Старые альбомы"
-                    value="oldest"
-                  />
-                  <Picker.Item
-                    style={styles.text}
-                    label="По имени"
-                    value="byName"
-                  />
-                </Picker>
-              </View>
-            </List.Accordion>
             <List.Accordion
               style={styles.accordionItem}
               titleStyle={styles.text}
